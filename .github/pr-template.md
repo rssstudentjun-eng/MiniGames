@@ -1,6 +1,6 @@
 ## 1. Task
 
-[Task link]()
+[Task link](<>)
 
 ## 2. Screenshot
 
@@ -8,7 +8,7 @@
 
 ## 3. Deployment
 
-[Deploy]()
+[Deploy](<>)
 
 ## 4. Done
 
