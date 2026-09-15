@@ -11,16 +11,20 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.33.0",
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.10.0",
     "eslint-plugin-unicorn": "^74.0.0",
+    "husky": "^9.1.7",
     "prettier": "^3.9.6",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.70.0",
