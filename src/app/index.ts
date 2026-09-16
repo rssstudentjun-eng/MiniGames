@@ -1,1 +1,3 @@
+import '../styles/globals.scss';
+
 document.body.innerHTML = '<h1>MiniGames</h1>';
