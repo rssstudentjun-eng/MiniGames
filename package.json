@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run build"
   },
   "keywords": [],
   "author": "",

@@ -6,6 +6,12 @@
   }
 }
 
+@mixin middle {
+  @media (width <= $breakpoint-middle) {
+    @content;
+  }
+}
+
 @mixin tablet {
   @media (width <= $breakpoint-tablet) {
     @content;

@@ -6,10 +6,54 @@
   box-sizing: border-box;
 }
 
+html {
+  min-width: var(--page-min-width);
+}
+
 body {
   margin: 0;
   min-width: var(--page-min-width);
   font-family: var(--font-family);
   color: var(--black);
   background-color: var(--bg);
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+.container {
+  width: 100%;
+  max-width: 1920px;
+  margin-inline: auto;
+  padding-inline: var(--size-2);
 }
