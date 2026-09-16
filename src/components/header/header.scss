@@ -1,0 +1,132 @@
+@use '../../styles/mixins' as *;
+
+.header {
+  width: 100%;
+  background-color: var(--bg);
+}
+
+.headerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--size-3);
+  min-height: var(--size-10);
+  padding: 0 var(--size-10);
+}
+
+.headerLogoWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-1);
+  color: var(--black);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.headerLogoText {
+  font-weight: var(--bold);
+  font-size: var(--headline-medium);
+  color: var(--on-primary);
+}
+
+.headerLogoIcon {
+  width: var(--size-4);
+  height: var(--size-4);
+}
+
+.headerNavList {
+  display: flex;
+  align-items: center;
+  gap: var(--size-5);
+  margin-left: auto;
+}
+
+.headerNavLink {
+  color: var(--on-bg);
+  font-size: var(--body-medium);
+  font-weight: var(--medium);
+  text-decoration: none;
+  cursor: pointer;
+  letter-spacing: 1px;
+
+  &.headerNavLinkActive {
+    font-weight: var(--bold);
+    color: var(--on-primary);
+  }
+}
+
+.headerBtnsWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+}
+
+.signUpBtn {
+  background-color: var(--primary);
+
+  &:hover {
+    background: var(--primary-high);
+  }
+}
+
+.logInBtn {
+  &:hover {
+    background: var(--primary-low);
+  }
+}
+
+.headerBtn {
+  padding: var(--btn-medium-padding);
+  border: 2px solid var(--on-primary);
+  border-radius: var(--corner-small);
+  font-size: var(--label-large);
+  font-weight: var(--bold);
+  color: var(--on-primary);
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--on-bg-low);
+    background-color: var(--outline);
+    cursor: not-allowed;
+  }
+}
+
+//=== Media
+@include middle {
+  .headerContainer {
+    padding: 0 var(--size-2);
+    gap: var(--size-1);
+  }
+  .headerNavList {
+    gap: var(--size-1);
+  }
+}
+
+@include tablet {
+  .headerContainer {
+    min-height: var(--size-8);
+    gap: var(--size-2);
+  }
+
+  .headerNavList {
+    display: none;
+  }
+}
+
+@include mobile {
+  .headerContainer {
+    min-height: var(--size-7);
+    padding-block: var(--size-1);
+  }
+
+  .headerLogoText {
+    font-size: var(--body-medium);
+  }
+
+  .headerBtnsWrapper {
+    gap: var(--size-05);
+  }
+
+  .headerBtn {
+    padding: var(--btn-icon-padding);
+  }
+}
