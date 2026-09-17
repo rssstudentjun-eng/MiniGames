@@ -1,0 +1,134 @@
+@use '../../styles/mixins' as *;
+
+.heroSection {
+  background-image: url('../../assets/images/hero_section_back.png');
+  background-size: cover;
+  background-position: center;
+  height: 627px;
+  display: flow-root;
+}
+
+.heroSectionInfoBlock {
+  background-color: var(--bg);
+  border: 3px solid var(--on-primary);
+  box-shadow: 8px 8px 0 0 var(--on-primary);
+  border-radius: var(--corner-extra-large);
+  padding: var(--size-6);
+  width: 640px;
+  margin-top: 112px;
+  margin-left: 120px;
+}
+
+.sectionHeroTitle {
+  width: 544px;
+  font-weight: var(--bold);
+  font-size: var(--display-large);
+  color: var(--on-primary);
+  line-height: 110%;
+  letter-spacing: normal;
+}
+
+.sectionHeroSubtitle {
+  font-weight: var(--medium);
+  font-size: var(--body-large);
+  color: var(--on-bg);
+  margin: var(--size-3) 0;
+  line-height: 150%;
+  letter-spacing: 1.1px;
+  word-spacing: -3px;
+}
+
+.sectionHeroButton {
+  border: 2px solid var(--on-primary);
+  background: var(--primary);
+  border-radius: var(--corner-small);
+  font-weight: var(--bold);
+  padding: var(--btn-standard-padding);
+  color: var(--black);
+  letter-spacing: 1.1px;
+  margin-left: -5px;
+
+  &:hover {
+    background-color: var(--primary-high);
+  }
+}
+
+//Media
+@include middle {
+  .heroSectionInfoBlock {
+    margin-left: 60px;
+  }
+}
+
+@include tablet {
+  .heroSection {
+    height: 383px;
+  }
+
+  .heroSectionInfoBlock {
+    width: 480px;
+    padding: var(--size-3);
+    margin-top: 75px;
+    margin-left: 40px;
+    box-shadow: 6px 6px 0 0 var(--on-primary);
+    border-radius: 16px;
+  }
+
+  .sectionHeroTitle {
+    font-size: var(--display-medium);
+    line-height: 115%;
+    width: 432px;
+  }
+  .sectionHeroSubtitle {
+    font-size: var(--label-medium);
+    line-height: 140%;
+    width: 432px;
+    margin: var(--size-2) 0;
+  }
+
+  .sectionHeroButton {
+    padding: var(--btn-medium-padding);
+    font-size: var(--body-small);
+    letter-spacing: normal;
+  }
+}
+
+@include premobile {
+  .heroSection {
+    height: 331px;
+  }
+  .heroSectionInfoBlock {
+    margin-top: 67px;
+    margin-left: 13px;
+    width: 343px;
+    box-shadow: 4px 4px 0 0 var(--on-primary);
+    border-radius: 12px;
+  }
+
+  .sectionHeroTitle {
+    font-size: 24px;
+    line-height: 120%;
+    color: var(--on-primary);
+    width: 295px;
+  }
+
+  .sectionHeroSubtitle {
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 140%;
+    color: var(--on-bg);
+    width: 295px;
+    letter-spacing: normal;
+    word-spacing: normal;
+  }
+
+  .sectionHeroButton {
+    font-size: 12px;
+    color: var(--on-primary);
+    padding: var(--btn-small-padding);
+  }
+
+  .sectionHeroSubtitleExtra {
+    display: none;
+  }
+}

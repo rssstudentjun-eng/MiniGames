@@ -18,6 +18,12 @@
   }
 }
 
+@mixin premobile {
+  @media (width <= $breakpoint-premobile) {
+    @content;
+  }
+}
+
 @mixin mobile {
   @media (width <= $breakpoint-mobile) {
     @content;
