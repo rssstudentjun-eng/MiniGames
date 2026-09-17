@@ -1,37 +1,16 @@
 import headerLogoUrl from '../../assets/icons/headerLogo.svg';
 import './header.scss';
 
-export function createHeader(): HTMLElement {
-  const header = document.createElement('header');
-  header.classList.add('header');
+const navItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Library', href: '/' },
+  { label: 'Tournaments', href: '/' },
+  { label: 'Community', href: '/' },
+];
 
-  const container = document.createElement('div');
-  container.classList.add('container', 'headerContainer');
-
-  const headerLogoWrap = document.createElement('a');
-  headerLogoWrap.classList.add('headerLogoWrap');
-  headerLogoWrap.href = '/';
-
-  const headerLogoIcon = document.createElement('img');
-  headerLogoIcon.classList.add('headerLogoIcon');
-  headerLogoIcon.src = headerLogoUrl;
-  headerLogoIcon.alt = 'headerLogo';
-
-  const headerLogoText = document.createElement('span');
-  headerLogoText.classList.add('headerLogoText');
-  headerLogoText.textContent = 'MiniGames';
-
-  headerLogoWrap.append(headerLogoIcon, headerLogoText);
-
-  const navItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Library', href: '/' },
-    { label: 'Tournaments', href: '/' },
-    { label: 'Community', href: '/' },
-  ];
-
-  const headerNavList = document.createElement('ul');
-  headerNavList.classList.add('headerNavList');
+function createNavList(className: string): HTMLUListElement {
+  const navList = document.createElement('ul');
+  navList.classList.add(className);
 
   for (const navItem of navItems) {
     const item = document.createElement('li');
@@ -39,7 +18,6 @@ export function createHeader(): HTMLElement {
 
     link.classList.add('headerNavLink');
     link.textContent = navItem.label;
-    link.dataset.text = navItem.label;
     link.href = navItem.href;
 
     if (navItem.label === 'Home') {
@@ -47,83 +25,104 @@ export function createHeader(): HTMLElement {
     }
 
     link.addEventListener('click', () => {
-      const activeLink = headerNavList.querySelector('.headerNavLinkActive');
-      activeLink?.classList.remove('headerNavLinkActive');
+      const activeLink = navList.querySelector('.headerNavLinkActive');
 
+      activeLink?.classList.remove('headerNavLinkActive');
       link.classList.add('headerNavLinkActive');
     });
 
     item.append(link);
-    headerNavList.append(item);
+    navList.append(item);
   }
 
-  const headerBtnsWrapper = document.createElement('div');
-  headerBtnsWrapper.classList.add('headerBtnsWrapper');
+  return navList;
+}
 
-  const logInButon = document.createElement('button');
-  logInButon.type = 'button';
+export function createHeader(): HTMLElement {
+  const header = document.createElement('header');
+  header.classList.add('header');
 
-  const signUpButon = document.createElement('button');
-  signUpButon.type = 'button';
+  const container = document.createElement('div');
+  container.classList.add('container', 'headerContainer');
 
-  logInButon.textContent = 'Log In';
-  signUpButon.textContent = 'Sign Up';
-  logInButon.classList.add('headerBtn', 'logInBtn');
-  signUpButon.classList.add('headerBtn', 'signUpBtn');
+  const logo = document.createElement('a');
+  logo.classList.add('headerLogoWrap');
+  logo.href = '/';
 
-  headerBtnsWrapper.append(logInButon, signUpButon);
+  const logoIcon = document.createElement('img');
+  logoIcon.classList.add('headerLogoIcon');
+  logoIcon.src = headerLogoUrl;
+  logoIcon.alt = 'MiniGames logo';
 
-  // =====
+  const logoText = document.createElement('span');
+  logoText.classList.add('headerLogoText');
+  logoText.textContent = 'MiniGames';
+
+  logo.append(logoIcon, logoText);
+
+  const navList = createNavList('headerNavList');
+
+  const buttonsWrapper = document.createElement('div');
+  buttonsWrapper.classList.add('headerBtnsWrapper');
+
+  const logInButton = document.createElement('button');
+  logInButton.type = 'button';
+  logInButton.textContent = 'Log In';
+  logInButton.classList.add('headerBtn', 'logInBtn');
+
+  const signUpButton = document.createElement('button');
+  signUpButton.type = 'button';
+  signUpButton.textContent = 'Sign Up';
+  signUpButton.classList.add('headerBtn', 'signUpBtn');
+
+  buttonsWrapper.append(logInButton, signUpButton);
+
   const menuButton = document.createElement('button');
-  menuButton.classList.add('headerMenuBtn');
   menuButton.type = 'button';
-  menuButton.ariaLabel = 'Open menu';
-  menuButton.textContent = '☰';
+  menuButton.classList.add('headerMenuBtn');
+  menuButton.setAttribute('aria-label', 'Open menu');
+
+  for (let index = 0; index < 3; index++) {
+    const line = document.createElement('span');
+    line.classList.add('headerMenuLine');
+    menuButton.append(line);
+  }
 
   const mobileMenu = document.createElement('div');
   mobileMenu.classList.add('mobileMenu');
 
-  const closeButton = document.createElement('button');
-  closeButton.classList.add('mobileMenuCloseBtn');
-  closeButton.type = 'button';
-  closeButton.ariaLabel = 'Close menu';
-  closeButton.textContent = '×';
+  const mobileLogo = logo.cloneNode(true) as HTMLAnchorElement;
+  const mobileNavList = createNavList('mobileNavList');
 
-  const mobileNavList = headerNavList.cloneNode(true) as HTMLUListElement;
-  mobileNavList.classList.add('mobileNavList');
+  const mobileLogInButton = logInButton.cloneNode(true);
+  const mobileSignUpButton = signUpButton.cloneNode(true);
 
-  const headerMobileMenu = document.createElement('div');
+  mobileMenu.append(mobileLogo, mobileNavList, mobileLogInButton, mobileSignUpButton);
 
-  headerMobileMenu.append(headerLogoWrap.cloneNode(true), closeButton);
-  headerMobileMenu.classList.add('headerMobileMenu');
-
-  mobileMenu.append(
-    headerMobileMenu,
-    mobileNavList,
-    logInButon.cloneNode(true),
-    signUpButon.cloneNode(true),
-  );
+  menuButton.setAttribute('aria-expanded', 'false');
 
   menuButton.addEventListener('click', () => {
-    mobileMenu.classList.add('mobileMenuOpen');
-    document.body.classList.add('scrollLocked');
-  });
+    const isOpen = mobileMenu.classList.toggle('mobileMenuOpen');
 
-  closeButton.addEventListener('click', () => {
-    mobileMenu.classList.remove('mobileMenuOpen');
-    document.body.classList.remove('scrollLocked');
+    document.body.classList.toggle('scrollLocked', isOpen);
+
+    menuButton.setAttribute('aria-expanded', String(isOpen));
+    menuButton.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
   });
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') {
       return;
     }
+
     mobileMenu.classList.remove('mobileMenuOpen');
     document.body.classList.remove('scrollLocked');
-  });
-  // =====
 
-  container.append(headerLogoWrap, headerNavList, headerBtnsWrapper, menuButton);
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', 'Open menu');
+  });
+
+  container.append(logo, navList, buttonsWrapper, menuButton);
 
   header.append(container, mobileMenu);
 

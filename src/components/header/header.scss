@@ -93,11 +93,58 @@
 .headerMobileMenu {
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
 .headerMenuBtn {
   display: none;
+  position: relative;
+  z-index: 101;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+
+  .headerMenuLine {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 15px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transform: translate(-50%, -50%);
+    transition:
+      transform 0.3s ease,
+      opacity 0.2s ease;
+  }
+
+  .headerMenuLine:nth-child(1) {
+    transform: translate(-50%, -50%) translateY(-6px);
+  }
+
+  .headerMenuLine:nth-child(3) {
+    transform: translate(-50%, -50%) translateY(6px);
+  }
+
+  &[aria-expanded='true'] {
+    color: var(--white);
+    background: var(--bg-footer-low);
+    transform: translate(-11px, 9px);
+    border: none;
+
+    .headerMenuLine:nth-child(1) {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .headerMenuLine:nth-child(2) {
+      opacity: 0;
+      transform: translate(-50%, -50%) scaleX(0);
+    }
+
+    .headerMenuLine:nth-child(3) {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+  }
 }
 
 .mobileMenu {
@@ -121,16 +168,6 @@
   transform: translateX(0);
   visibility: visible;
   pointer-events: auto;
-}
-
-.mobileMenuCloseBtn {
-  margin-left: auto;
-  font-size: var(--headline-large);
-  color: var(--white);
-  border-radius: var(--corner-small);
-  width: 32px;
-  height: 32px;
-  background: var(--bg-footer-low);
 }
 
 .mobileNavList {
@@ -161,7 +198,7 @@
     gap: var(--size-3);
   }
 
-  .headerMobileMenu {
+  .mobileMenu {
     .headerLogoText {
       color: var(--white);
     }
@@ -225,8 +262,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--size-5);
-    height: var(--size-5);
+    width: var(--size-4);
+    height: var(--size-4);
     border: 2px solid var(--on-primary);
     border-radius: var(--corner-small);
     color: var(--on-primary);
@@ -269,6 +306,6 @@
   }
 
   .mobileMenu {
-    padding: 22px 50px 0;
+    padding: 22px 20px 0;
   }
 }
