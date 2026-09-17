@@ -4,6 +4,8 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
@@ -11,7 +13,6 @@ html {
 }
 
 body {
-  margin: 0;
   min-width: var(--page-min-width);
   font-family: var(--font-family);
   color: var(--black);
@@ -20,8 +21,6 @@ body {
 
 ul,
 ol {
-  margin: 0;
-  padding: 0;
   list-style: none;
 }
 
@@ -38,7 +37,6 @@ select {
 }
 
 button {
-  padding: 0;
   border: 0;
   color: inherit;
   background: none;
