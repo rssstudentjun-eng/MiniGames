@@ -73,9 +73,59 @@ export function createHeader(): HTMLElement {
 
   headerBtnsWrapper.append(logInButon, signUpButon);
 
-  container.append(headerLogoWrap, headerNavList, headerBtnsWrapper);
+  // =====
+  const menuButton = document.createElement('button');
+  menuButton.classList.add('headerMenuBtn');
+  menuButton.type = 'button';
+  menuButton.ariaLabel = 'Open menu';
+  menuButton.textContent = '☰';
 
-  header.append(container);
+  const mobileMenu = document.createElement('div');
+  mobileMenu.classList.add('mobileMenu');
+
+  const closeButton = document.createElement('button');
+  closeButton.classList.add('mobileMenuCloseBtn');
+  closeButton.type = 'button';
+  closeButton.ariaLabel = 'Close menu';
+  closeButton.textContent = '×';
+
+  const mobileNavList = headerNavList.cloneNode(true) as HTMLUListElement;
+  mobileNavList.classList.add('mobileNavList');
+
+  const headerMobileMenu = document.createElement('div');
+
+  headerMobileMenu.append(headerLogoWrap.cloneNode(true), closeButton);
+  headerMobileMenu.classList.add('headerMobileMenu');
+
+  mobileMenu.append(
+    headerMobileMenu,
+    mobileNavList,
+    logInButon.cloneNode(true),
+    signUpButon.cloneNode(true),
+  );
+
+  menuButton.addEventListener('click', () => {
+    mobileMenu.classList.add('mobileMenuOpen');
+    document.body.classList.add('scrollLocked');
+  });
+
+  closeButton.addEventListener('click', () => {
+    mobileMenu.classList.remove('mobileMenuOpen');
+    document.body.classList.remove('scrollLocked');
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') {
+      return;
+    }
+    mobileMenu.classList.remove('mobileMenuOpen');
+    document.body.classList.remove('scrollLocked');
+  });
+  // =====
+
+  container.append(headerLogoWrap, headerNavList, headerBtnsWrapper, menuButton);
+
+  header.append(container, mobileMenu);
 
   return header;
 }
