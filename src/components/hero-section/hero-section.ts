@@ -2,7 +2,7 @@ import './hero-section.scss';
 
 export function createHeroSection(): HTMLElement {
   const heroSection = document.createElement('section');
-  heroSection.classList.add('heroSection');
+  heroSection.classList.add('heroSection', 'container');
 
   const heroSectionInfoBlock = document.createElement('div');
   heroSectionInfoBlock.classList.add('heroSectionInfoBlock');

@@ -6,6 +6,12 @@
   }
 }
 
+@mixin pre-middle {
+  @media (width <= $breakpoint-pre-middle) {
+    @content;
+  }
+}
+
 @mixin middle {
   @media (width <= $breakpoint-middle) {
     @content;
@@ -19,7 +25,7 @@
 }
 
 @mixin premobile {
-  @media (width <= $breakpoint-premobile) {
+  @media (width <= $breakpoint-pre-mobile) {
     @content;
   }
 }
