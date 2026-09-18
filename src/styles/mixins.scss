@@ -24,6 +24,12 @@
   }
 }
 
+@mixin after-tablet {
+  @media (width <= $breakpoint-after-tablet) {
+    @content;
+  }
+}
+
 @mixin premobile {
   @media (width <= $breakpoint-pre-mobile) {
     @content;
