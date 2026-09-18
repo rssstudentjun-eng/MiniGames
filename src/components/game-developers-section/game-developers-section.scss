@@ -12,7 +12,9 @@
   border: 2px solid var(--on-primary);
   border-radius: 24px;
   padding: 40px;
-  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.08), 0 2px 8px -4px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 14px 30px -10px rgba(0, 0, 0, 0.08),
+    0 2px 8px -4px rgba(0, 0, 0, 0.04);
   background: var(--white);
   display: flex;
   flex-direction: column;
@@ -62,13 +64,9 @@
   margin-top: 24px;
 }
 
-
 //Media
 @include pre-middle {
   .gameDevelopersSection {
     flex-direction: column;
   }
 }
-
-
-
