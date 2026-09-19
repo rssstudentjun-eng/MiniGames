@@ -1,0 +1,226 @@
+@use '../../styles/mixins' as *;
+
+.footer {
+  padding: 40px 120px 0;
+  background: var(--bg-footer);
+}
+
+.topContentWrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footerLogoText {
+  font-weight: var(--bold);
+  font-size: var(--headline-medium);
+  color: var(--white);
+}
+
+.description {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 150%;
+  color: var(--on-bg-footer);
+  width: 375px;
+}
+
+.topContentDescription {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 88px;
+}
+
+.bottomContentWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--on-bg-footer);
+  letter-spacing: 0.15px;
+  padding: 25px 0 42px;
+  border-top: 1px solid var(--bg-footer-low);
+  margin-top: 47px;
+}
+
+.courseLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rsIcon {
+  border-radius: 12px;
+  padding: 6px;
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+  background: var(--on-primary);
+}
+
+.codeImage {
+  border-radius: 12px;
+  padding: 6px;
+  width: 25px;
+  height: 25px;
+  background: var(--white);
+}
+
+.gitHubLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.footerIconList {
+  display: flex;
+  gap: 16px;
+}
+
+.footerIconLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-footer-low);
+}
+
+.footerLinkIcon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.footerLinkGroupTitle {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--white);
+  margin-bottom: 16px;
+}
+
+.footerLink {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--on-bg-footer);
+}
+
+.footerLinkList li {
+  padding-bottom: 15px;
+}
+
+//Media
+@include middle {
+  .footer {
+    margin-top: 25px;
+    padding: 40px 40px 0;
+  }
+
+  .topContentWrapper {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .footerLogoText {
+    font-size: 20px;
+  }
+
+  .description {
+    width: 100%;
+  }
+
+  .footerLinks {
+    gap: 48px;
+  }
+
+  .footerIconLink {
+    width: 30px;
+    height: 30px;
+  }
+
+  .footerIconList {
+    gap: 18px;
+  }
+
+  .footerLinkIcon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .bottomContentWrapper {
+    margin-top: 25px;
+    padding: 15px 0 42px;
+  }
+  .rsIcon {
+    width: 22px;
+    height: 22px;
+    padding: 5px;
+  }
+
+  .codeImage {
+    padding: 4px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@include tablet {
+  .designInfo {
+    display: none;
+  }
+
+  .bottomContentWrapper {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .footerLinks {
+    flex-wrap: wrap;
+  }
+  .footer {
+    padding: 34px 17px 0;
+  }
+
+  .description {
+    width: 285px;
+  }
+
+  .footerLinks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+    row-gap: 10px;
+
+    > :last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .bottomContentWrapper {
+    font-size: 12px;
+    margin-top: 10px;
+    padding: 8px 0 40px;
+    justify-content: flex-start;
+  }
+
+  .copyright {
+    flex-basis: 100%;
+  }
+
+  .courseLink {
+    margin-right: 10px;
+  }
+}
