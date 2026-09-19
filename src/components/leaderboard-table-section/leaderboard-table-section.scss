@@ -270,6 +270,12 @@
   }
 }
 
+@include tablet {
+  .leaderboardTableWrapper {
+    margin-bottom: 50px;
+  }
+}
+
 @include after-tablet {
   .leaderboardTitleSuffix {
     display: none;
