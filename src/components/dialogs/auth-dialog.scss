@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 html {
   scrollbar-gutter: stable;
 }
@@ -15,11 +17,11 @@ html.authDialogLocked {
   padding: 28px;
   overflow-y: auto;
   border: 2px solid var(--on-primary);
-  border-radius: 24px;
+  border-radius: var(--corner-extra-large);
   background: var(--bg);
   color: var(--on-primary);
   box-shadow: 4px 4px 0 var(--on-primary);
-  font-size: 14px;
+  font-size: var(--body-small);
 
   &[open] {
     animation: authEnter 0.2s ease both;
@@ -39,7 +41,7 @@ html.authDialogLocked {
   }
 
   h2 {
-    font-size: 24px;
+    font-size: var(--headline-medium);
     line-height: 1.25;
     margin: 24px 0 8px;
   }
@@ -67,8 +69,7 @@ html.authDialogLocked {
   font-weight: 700;
   color: var(--on-bg);
   background: var(--white);
-
-  font-size: 16px;
+  font-size: var(--body-medium);
 
   &[aria-pressed='true'] {
     color: var(--white);
@@ -78,35 +79,34 @@ html.authDialogLocked {
 
 .authDescription {
   color: var(--on-bg);
+  margin-bottom: var(--size-3);
   line-height: 1.5;
-  margin-bottom: 24px;
 }
 
 .authForm {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--size-2);
 }
 
 .authField {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-weight: 700;
-
-  font-size: 14px;
+  gap: var(--size-1);
+  font-weight: var(--bold);
+  font-size: var(--body-small);
   color: var(--on-primary);
 }
 
 .authControl {
+  border: 2px solid var(--on-primary);
+  background: var(--white);
   display: flex;
   align-items: center;
   gap: 12px;
   min-height: 48px;
   padding: 0 14px;
-  border: 2px solid var(--on-primary);
   border-radius: 8px;
-  background: var(--white);
 
   &:focus-within {
     border-color: var(--tertiary);
@@ -138,14 +138,14 @@ html.authDialogLocked {
 }
 
 .authReveal {
+  padding: var(--size-05);
   display: flex;
-  padding: 4px;
   flex-shrink: 0;
 }
 
 .authTextButton {
   color: var(--on-primary);
-  font-weight: 700;
+  font-weight: var(--bold);
   text-decoration: underline;
 }
 
@@ -155,14 +155,14 @@ html.authDialogLocked {
 
 .authSubmit,
 .authGoogle {
+  font-size: var(--body-medium);
+  font-weight: var(--bold);
+  color: var(--on-primary);
+  border: 2px solid var(--on-primary);
   min-height: 50px;
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--on-primary);
   border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--on-primary);
 }
 
 .authSubmit {
@@ -179,12 +179,12 @@ html.authDialogLocked {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--size-2);
   background: var(--white);
 
   img {
-    width: 24px;
-    height: 24px;
+    width: var(--size-3);
+    height: var(--size-3);
   }
 
   &:hover {
@@ -193,13 +193,13 @@ html.authDialogLocked {
 }
 
 .authDivider {
+  font-size: var(--label-medium);
+  color: var(--on-bg);
+  gap: var(--size-2);
+  font-weight: var(--bold);
   display: flex;
   align-items: center;
-  gap: 16px;
   margin: 20px 0 16px;
-  color: var(--on-bg);
-  font-size: 12px;
-  font-weight: 700;
 
   &::before,
   &::after {
@@ -211,7 +211,7 @@ html.authDialogLocked {
 }
 
 .authFooter {
-  margin-top: 24px;
+  margin-top: var(--size-3);
   text-align: center;
   color: var(--on-bg);
   line-height: 1.5;
@@ -252,7 +252,7 @@ html.authDialogLocked {
 
 @media (width <= 420px) {
   .authDialog {
-    padding: 24px;
+    padding: var(--size-3);
   }
 }
 

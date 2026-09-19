@@ -9,9 +9,9 @@
     minmax(0, 12fr)
     minmax(0, 5fr);
 
-  gap: 8px;
+  gap: var(--size-1);
   margin: 0;
-  padding: 0 8px;
+  padding: 0 var(--size-1);
   list-style: none;
   width: 100%;
 }
@@ -35,7 +35,7 @@
 .carouselCardLikes {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--size-1);
 }
 
 .carouselCardImage {
@@ -119,8 +119,8 @@
       minmax(0, 12fr)
       minmax(0, 53fr)
       minmax(0, 12fr);
-    gap: 8px;
-    padding: 0 8px;
+    gap: var(--size-1);
+    padding: 0 var(--size-1);
   }
 }
 
@@ -128,7 +128,7 @@
   .carouselCard {
     height: 200px;
     border: 2.5px solid var(--on-primary);
-    border-radius: 16px;
+    border-radius: var(--corner-large);
     box-shadow: 4px 4px 0 0 var(--on-primary);
   }
 

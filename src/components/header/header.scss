@@ -195,7 +195,7 @@
 //=== Media
 @include middle {
   .headerNavList {
-    gap: var(--size-3);
+    gap: var(--size-2);
   }
 
   .mobileMenu {
@@ -234,6 +234,7 @@
     min-height: var(--size-8);
     gap: var(--size-2);
     justify-content: space-between;
+    padding: 0 var(--size-5);
   }
 
   .mobileMenu {
@@ -275,6 +276,7 @@
 
   .signUpBtn {
     border: 2px solid var(--black);
+    padding: var(--btn-small-padding);
   }
 }
 
@@ -282,6 +284,7 @@
   .headerContainer {
     min-height: var(--size-7);
     padding-block: var(--size-1);
+    padding: 0 var(--size-2);
   }
 
   .headerBtnsWrapper {
