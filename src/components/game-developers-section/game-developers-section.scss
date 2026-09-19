@@ -11,7 +11,7 @@
 .gameDevelopersInfoBlock {
   border: 2px solid var(--on-primary);
   border-radius: 24px;
-  padding: 40px;
+  padding: 30px;
   box-shadow:
     0 14px 30px -10px rgba(0, 0, 0, 0.08),
     0 2px 8px -4px rgba(0, 0, 0, 0.04);
@@ -68,5 +68,75 @@
 @include pre-middle {
   .gameDevelopersSection {
     flex-direction: column;
+    padding: 0 30px;
+    gap: 24px;
+  }
+
+  .gameDevelopersSectionImage {
+    width: 100%;
+    max-width: 700px;
+    aspect-ratio: 700 / 300;
+    height: auto;
+    object-fit: cover;
+    border-radius: 24px;
+  }
+
+  .gameDevelopersInfoBlockTitle {
+    font-size: 24px;
+  }
+
+  .gameDevelopersInfoBlockDescription {
+    margin: 15px 0;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 150%;
+    max-width: 454px;
+  }
+
+  .gameDevelopersInfoBlockButton {
+    font-size: 14px;
+    border: 2px solid var(--on-primary);
+    border-radius: 12px;
+    padding: 10px 20px;
+    width: 155px;
+    height: 37px;
+  }
+
+  .gameDevelopersInfoBlockContact {
+    margin-top: 20px;
+    font-size: 12px;
+  }
+}
+
+@include mobile {
+  .gameDevelopersSection {
+    padding: 0 7px;
+  }
+  .gameDevelopersSectionImage {
+    max-width: 343px;
+    height: 227px;
+  }
+  .gameDevelopersInfoBlock {
+    padding: 24px;
+  }
+  .gameDevelopersSection {
+    gap: 14px;
+  }
+
+  .gameDevelopersInfoBlockDescription {
+    font-size: 12px;
+    max-width: 210px;
+  }
+
+  .gameDevelopersInfoBlockButton {
+    border-radius: 12px;
+    padding: 8px 15px;
+    width: 129px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .gameDevelopersInfoBlockContact {
+    margin-top: 16px;
   }
 }
