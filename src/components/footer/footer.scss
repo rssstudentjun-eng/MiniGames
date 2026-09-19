@@ -3,6 +3,7 @@
 .footer {
   padding: 40px 120px 0;
   background: var(--bg-footer);
+  margin-top: 25px;
 }
 
 .topContentWrapper {
@@ -17,17 +18,17 @@
 }
 
 .description {
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 150%;
+  font-weight: var(--regular);
+  font-size: var(--body-small);
   color: var(--on-bg-footer);
+  line-height: 150%;
   width: 375px;
 }
 
 .topContentDescription {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--size-3);
 }
 
 .footerLinks {
@@ -36,15 +37,15 @@
 }
 
 .bottomContentWrapper {
+  color: var(--on-bg-footer);
+  border-top: 1px solid var(--bg-footer-low);
+  font-size: var(--body-small);
+  font-weight: var(--regular);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 400;
-  font-size: 14px;
-  color: var(--on-bg-footer);
   letter-spacing: 0.15px;
   padding: 25px 0 42px;
-  border-top: 1px solid var(--bg-footer-low);
   margin-top: 47px;
 }
 
@@ -56,12 +57,12 @@
 }
 
 .rsIcon {
+  font-size: var(--label-small);
+  background: var(--on-primary);
   border-radius: 12px;
   padding: 6px;
   width: 26px;
   height: 26px;
-  font-size: 10px;
-  background: var(--on-primary);
 }
 
 .codeImage {
