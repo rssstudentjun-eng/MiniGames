@@ -1,5 +1,6 @@
 import headerLogoUrl from '../../assets/icons/headerLogo.svg';
 import './header.scss';
+import { createAuthDialog, openAuthDialog } from '../dialogs/auth-dialog';
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -111,7 +112,7 @@ export function createHeader(): HTMLElement {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') {
+    if (event.key !== 'Escape' || !mobileMenu.classList.contains('mobileMenuOpen')) {
       return;
     }
 
@@ -124,7 +125,26 @@ export function createHeader(): HTMLElement {
 
   container.append(logo, navList, buttonsWrapper, menuButton);
 
-  header.append(container, mobileMenu);
+  const authDialog = createAuthDialog();
+  for (const [trigger, mode] of [
+    [logInButton, 'login'],
+    [signUpButton, 'register'],
+    [mobileLogInButton, 'login'],
+    [mobileSignUpButton, 'register'],
+  ] as const) {
+    trigger.addEventListener('click', () => {
+      if (mobileMenu.classList.contains('mobileMenuOpen')) {
+        mobileMenu.classList.remove('mobileMenuOpen');
+        document.body.classList.remove('scrollLocked');
+        menuButton.setAttribute('aria-expanded', 'false');
+        menuButton.setAttribute('aria-label', 'Open menu');
+        menuButton.focus();
+      }
+      openAuthDialog(authDialog, mode);
+    });
+  }
+
+  header.append(container, mobileMenu, authDialog);
 
   return header;
 }
