@@ -1,0 +1,365 @@
+@use '../../styles/mixins' as *;
+
+.leaderboardSection {
+  padding: 0 120px;
+}
+
+.sectionLeaderBordTitle {
+  font-weight: var(--bold);
+  font-size: var(--headline-large);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+
+  &::before {
+    content: '';
+    border: 1.5px solid var(--on-primary);
+    border-radius: 4px;
+    width: 8px;
+    height: 32px;
+    background: var(--primary);
+  }
+}
+
+.leaderboardTableWrapper {
+  overflow-x: auto;
+  border: 2.5px solid var(--on-primary);
+  border-radius: 16px;
+  box-shadow: 6px 6px 0 0 var(--on-primary);
+  background: var(--white);
+  margin-bottom: 40px;
+}
+
+.leaderboardTable {
+  width: 100%;
+  min-width: 800px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: var(--on-primary);
+  font-size: var(--body-small);
+
+  th,
+  td {
+    padding: 15px 0;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  thead {
+    background: var(--tertiary);
+    color: var(--white);
+  }
+
+  th {
+    font-weight: var(--bold);
+    color: var(--white);
+    font-size: 15px;
+    text-transform: uppercase;
+    padding-block: 26px;
+  }
+
+  td {
+    height: 56px;
+  }
+
+  tbody tr {
+    background: var(--white);
+  }
+
+  tbody tr:nth-child(odd) {
+    background: var(--bg);
+  }
+
+  tbody tr + tr {
+    border-top: 1px solid var(--outline);
+  }
+
+  th:nth-child(1) {
+    width: 7.4%;
+  }
+
+  th:nth-child(2) {
+    width: 17%;
+  }
+
+  th:nth-child(n + 3) {
+    width: 18.9%;
+  }
+
+  tbody tr:first-child .leaderboardRank {
+    color: var(--primary);
+  }
+}
+
+.leaderboardPlayer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  text-align: left;
+  font-weight: var(--bold);
+  white-space: nowrap;
+
+  span {
+    font-size: 16px;
+  }
+}
+
+.leaderboardAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--avatar-random-1);
+  font-size: var(--label-medium);
+
+  border: 1.5px solid var(--on-primary);
+  border-radius: 20px;
+  width: 40px;
+  height: 40px;
+}
+
+.leaderboardTable tbody {
+  tr:nth-child(1) .leaderboardAvatar {
+    background: var(--primary);
+  }
+
+  tr:nth-child(2) .leaderboardAvatar {
+    background: var(--avatar-random-2);
+  }
+
+  tr:nth-child(3) .leaderboardAvatar {
+    background: var(--avatar-random-3);
+  }
+
+  tr:nth-child(4) .leaderboardAvatar {
+    background: var(--avatar-random-4);
+  }
+
+  tr:nth-child(5) .leaderboardAvatar {
+    background: var(--avatar-random-5);
+  }
+}
+
+.leaderboardRank,
+.leaderboardScore,
+.leaderboardGamesPlayed,
+.leaderboardStreak {
+  font-weight: var(--bold);
+  font-size: 16px;
+}
+
+.leaderboardGameBadge {
+  white-space: nowrap;
+  border: 1.5px solid var(--on-primary);
+  border-radius: 20px;
+  padding: 4px 12px;
+  width: 78px;
+  height: 22px;
+  background: var(--bg);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--on-primary);
+}
+
+.leaderboardScoreCompact {
+  display: none;
+}
+
+//Media
+@include middle {
+  .leaderboardTable tbody tr:nth-last-child(-n + 2) {
+    display: none;
+  }
+
+  .leaderboardGamesPlayedSuffix,
+  .leaderboardTotalScorePrefix,
+  .leaderboardDaysSuffix,
+  .leaderboardDaysSpace {
+    display: none;
+  }
+
+  .sectionLeaderBordTitle {
+    font-weight: 700;
+    font-size: 24px;
+    padding: 35px 0 24px;
+
+    &::before {
+      width: 8px;
+      height: 24px;
+    }
+  }
+
+  .leaderboardTable th {
+    padding-block: 16px;
+    font-size: 14px;
+  }
+
+  .leaderboardSection {
+    padding: 0 33px;
+  }
+
+  .leaderboardTable {
+    min-width: 560px;
+
+    th,
+    td {
+      padding-inline: 8px;
+      vertical-align: middle;
+    }
+
+    td {
+      padding-block: 15px;
+      height: 58px;
+    }
+
+    th:nth-child(6),
+    td:nth-child(6) {
+      display: none;
+    }
+
+    th:nth-child(1) {
+      width: 15%;
+    }
+
+    th:nth-child(2) {
+      width: 24%;
+    }
+
+    th:nth-child(3) {
+      width: 20%;
+    }
+
+    th:nth-child(4) {
+      width: 18%;
+    }
+
+    th:nth-child(5) {
+      width: 23%;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+      padding-right: 53px;
+    }
+  }
+
+  .leaderboardPlayer {
+    gap: 8px;
+  }
+
+  .leaderboardPlayer > span:not(.leaderboardAvatar) {
+    font-size: 14px;
+  }
+  .leaderboardAvatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .leaderboardPlayer span {
+    font-size: 10px;
+  }
+
+  .leaderboardRank,
+  .leaderboardScore,
+  .leaderboardGamesPlayed,
+  .leaderboardStreak {
+    font-size: 14px;
+  }
+}
+
+@include tablet {
+  .leaderboardTableWrapper {
+    margin-bottom: 50px;
+  }
+}
+
+@include after-tablet {
+  .leaderboardTitleSuffix {
+    display: none;
+  }
+
+  .leaderboardScoreFull {
+    display: none;
+  }
+
+  .leaderboardScoreCompact {
+    display: inline;
+  }
+
+  .leaderboardTable {
+    th:nth-child(3),
+    td:nth-child(3) {
+      display: none;
+    }
+  }
+  .leaderboardTable {
+    min-width: 0;
+
+    th:nth-child(1) {
+      width: 19%;
+    }
+
+    th:nth-child(2) {
+      width: 28%;
+    }
+
+    th:nth-child(4) {
+      width: 28%;
+    }
+
+    th:nth-child(5) {
+      width: 25%;
+    }
+
+    th,
+    td {
+      padding-inline: 4px;
+    }
+
+    th:nth-child(5),
+    td:nth-child(5) {
+      padding-inline: 4px;
+    }
+
+    th {
+      padding-block: 14px;
+      white-space: nowrap;
+    }
+
+    td {
+      padding-block: 16px;
+      height: 56px;
+    }
+  }
+
+  .leaderboardPlayer {
+    gap: 6px;
+  }
+
+  .leaderboardPlayer > span:not(.leaderboardAvatar) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .leaderboardAvatar {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@include premobile {
+  .leaderboardSection {
+    padding-inline: 16px;
+  }
+  .sectionLeaderBordTitle {
+    padding: 20px 0 24px;
+  }
+  .leaderboardTableWrapper {
+    margin-bottom: 20px;
+  }
+}

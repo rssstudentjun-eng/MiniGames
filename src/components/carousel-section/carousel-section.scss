@@ -1,0 +1,91 @@
+@use '../../styles/mixins' as *;
+
+.carouselSection {
+  padding: 44px 120px;
+}
+
+.carouselSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 40px;
+}
+
+.sectionCarouselTitle {
+  font-weight: var(--bold);
+  font-size: var(--headline-large);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &::before {
+    content: '';
+    border: 1.5px solid var(--on-primary);
+    border-radius: 4px;
+    width: 8px;
+    height: 32px;
+    background: var(--primary);
+  }
+}
+
+.carouselWrapperButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.carouselButton {
+  border: 2px solid var(--on-primary);
+  border-radius: 9999px;
+  padding: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--primary);
+  }
+}
+
+//Media
+@include pre-middle {
+  .carouselSection {
+    padding: 24px 37px;
+  }
+}
+
+@include tablet {
+  .sectionCarouselTitle {
+    font-size: var(--headline-medium);
+  }
+
+  .carouselButton {
+    padding: 10px;
+  }
+
+  .sectionCarouselTitle {
+    &::before {
+      height: 24px;
+    }
+  }
+  .carouselSectionHeader {
+    margin: 0 0 23px;
+  }
+}
+
+@include premobile {
+}
+
+@include mobile {
+  .carouselWrapperButtons {
+    display: none;
+  }
+
+  .carouselSection {
+    padding: 18px 13px;
+  }
+
+  .carouselSectionHeader {
+    margin: 0 0 17px;
+  }
+}

@@ -1,0 +1,264 @@
+@use '../../styles/mixins' as *;
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html.authDialogLocked {
+  overflow: hidden;
+}
+
+.authDialog {
+  box-sizing: border-box;
+  width: 420px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 28px;
+  overflow-y: auto;
+  border: 2px solid var(--on-primary);
+  border-radius: var(--corner-extra-large);
+  background: var(--bg);
+  color: var(--on-primary);
+  box-shadow: 4px 4px 0 var(--on-primary);
+  font-size: var(--body-small);
+
+  &[open] {
+    animation: authEnter 0.2s ease both;
+  }
+
+  &::backdrop {
+    background: rgb(15 12 35 / 65%);
+    animation: authFade 0.2s ease both;
+  }
+
+  &.authDialogClosing {
+    animation: authExit 0.2s ease both;
+  }
+
+  &.authDialogClosing::backdrop {
+    animation: authFadeOut 0.2s ease both;
+  }
+
+  h2 {
+    font-size: var(--headline-medium);
+    line-height: 1.25;
+    margin: 24px 0 8px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:focus-visible {
+    outline: 3px solid var(--tertiary);
+    outline-offset: 3px;
+  }
+}
+
+.authTabs {
+  display: flex;
+  border: 2px solid var(--on-primary);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.authTab {
+  flex: 1;
+  padding: 12px 8px;
+  font-weight: 700;
+  color: var(--on-bg);
+  background: var(--white);
+  font-size: var(--body-medium);
+
+  &[aria-pressed='true'] {
+    color: var(--white);
+    background: var(--on-primary);
+  }
+}
+
+.authDescription {
+  color: var(--on-bg);
+  margin-bottom: var(--size-3);
+  line-height: 1.5;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2);
+}
+
+.authField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+  font-weight: var(--bold);
+  font-size: var(--body-small);
+  color: var(--on-primary);
+}
+
+.authControl {
+  border: 2px solid var(--on-primary);
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 8px;
+
+  &:focus-within {
+    border-color: var(--tertiary);
+    box-shadow: 0 0 0 3px var(--secondary);
+  }
+
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    padding-block: 12px;
+    border: 0;
+    outline: none;
+    color: var(--on-primary);
+    background: transparent;
+    font-weight: 400;
+
+    &::placeholder {
+      color: var(--on-bg);
+      opacity: 1;
+    }
+  }
+}
+
+.authReveal {
+  padding: var(--size-05);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.authTextButton {
+  color: var(--on-primary);
+  font-weight: var(--bold);
+  text-decoration: underline;
+}
+
+.authForgot {
+  align-self: flex-end;
+}
+
+.authSubmit,
+.authGoogle {
+  font-size: var(--body-medium);
+  font-weight: var(--bold);
+  color: var(--on-primary);
+  border: 2px solid var(--on-primary);
+  min-height: 50px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.authSubmit {
+  margin-top: 8px;
+  background: var(--primary);
+  box-shadow: 0 4px 0 var(--on-primary);
+
+  &:hover {
+    background: var(--primary-high);
+  }
+}
+
+.authGoogle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-2);
+  background: var(--white);
+
+  img {
+    width: var(--size-3);
+    height: var(--size-3);
+  }
+
+  &:hover {
+    background: var(--secondary);
+  }
+}
+
+.authDivider {
+  font-size: var(--label-medium);
+  color: var(--on-bg);
+  gap: var(--size-2);
+  font-weight: var(--bold);
+  display: flex;
+  align-items: center;
+  margin: 20px 0 16px;
+
+  &::before,
+  &::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: var(--outline-variant);
+  }
+}
+
+.authFooter {
+  margin-top: var(--size-3);
+  text-align: center;
+  color: var(--on-bg);
+  line-height: 1.5;
+}
+
+@keyframes authEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes authExit {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes authFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes authFadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (width <= 420px) {
+  .authDialog {
+    padding: var(--size-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authDialog[open],
+  .authDialog::backdrop {
+    animation: none;
+  }
+}

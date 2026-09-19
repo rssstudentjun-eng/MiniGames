@@ -1,0 +1,5 @@
+node_modules
+dist
+coverage
+.pnpm-store
+.vite!/src/components/hero-section/hero-section.ts
