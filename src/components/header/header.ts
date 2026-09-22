@@ -4,7 +4,7 @@ import { createAuthDialog, openAuthDialog } from '../dialogs/auth-dialog';
 
 const navItems = [
   { label: 'Home', href: '/' },
-  { label: 'Library', href: '/' },
+  { label: 'Library', href: '/library' },
   { label: 'Tournaments', href: '/' },
   { label: 'Community', href: '/' },
 ];
@@ -22,7 +22,9 @@ function createNavList(className: string): HTMLUListElement {
     link.href = navItem.href;
 
     if (navItem.label === 'Home') {
-      link.classList.add('headerNavLinkActive');
+      link.dataset.page = 'home';
+    } else if (navItem.label === 'Library') {
+      link.dataset.page = 'library';
     }
 
     link.addEventListener('click', () => {
