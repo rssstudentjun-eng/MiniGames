@@ -52,5 +52,5 @@ const main = document.createElement('main');
 const footer = createFooter();
 
 app.prepend(header, main, footer);
-renderPage('library');
+renderPage('home');
 document.body.append(app);
