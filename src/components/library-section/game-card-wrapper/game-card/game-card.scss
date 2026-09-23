@@ -1,40 +1,88 @@
 .gameCard {
-  width: 50%;
   height: 200px;
+  display: flex;
+  border: 2.5px solid var(--on-primary);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 0 var(--on-primary);
+  background: var(--white);
 }
 
 .gameCardImage {
+  border-radius: 16px 0 0 16px;
 }
 
 .gameCardInfoBlock {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
 }
 
 .gameCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .gameCardTitle {
+  color: var(--on-primary);
+  font-weight: var(--bold);
+  font-size: var(--display-small);
 }
 
 .gameCardCategoryGame {
+  background: var(--secondary);
+  font-weight: var(--bold);
+  font-size: var(--label-medium);
+  color: var(--on-primary);
+  border: 1.5px solid var(--on-primary);
+  border-radius: 24px;
+  padding: 4px 8px;
+  width: fit-content;
+  text-transform: capitalize;
 }
 
 .gameCardPrice {
 }
 
 .gameCardDescription {
+  font-weight: var(--medium);
+  font-size: var(--body-medium);
+  color: var(--on-bg);
+  line-height: 140%;
+  text-align: start;
+  width: 476px;
 }
 
 .gameCardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .detailsButton {
+  background: var(--primary);
+  font-weight: var(--bold);
+  font-size: var(--label-large);
+  color: var(--on-primary);
+  border: 2px solid var(--on-primary);
+  text-transform: capitalize;
+  border-radius: 8px;
+  padding: 10px 20px;
 }
 
 .statsInfoBlock {
-}
+  display: flex;
+  align-items: center;
+  gap: 26px;
 
-.ratingBlock {
-}
-
-.likesBlock {
+  > div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    font-weight: var(--bold);
+    font-size: var(--label-extra-large);
+    color: var(--on-primary);
+  }
 }

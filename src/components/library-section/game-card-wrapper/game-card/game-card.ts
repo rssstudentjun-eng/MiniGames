@@ -59,7 +59,7 @@ export function createGameCard(game: GameType) {
   const likesBlockImg = document.createElement('img');
   likesBlockImg.alt = 'Likes';
   likesBlockImg.src = heartIcon;
-  likesBlock.textContent = String(game.likesCount);
+  likesBlock.textContent = `${game.likesCount / 100 / 10}K`;
   likesBlock.prepend(likesBlockImg);
 
   statsInfoBlock.append(ratingBlock, likesBlock);
