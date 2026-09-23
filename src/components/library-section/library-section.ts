@@ -1,6 +1,8 @@
 import { createGamesFilter } from './games-filter/games-filter.ts';
 import './library-section.scss';
 import { createSortingElement } from './sorting/sorting.ts';
+import { createGameCardsWrapper } from './game-card-wrapper/game-card-wrapper.ts';
+import { gamesData } from './data/games.ts';
 
 export function createLibrarySection(): HTMLElement {
   const librarySection = document.createElement('section');
@@ -25,7 +27,7 @@ export function createLibrarySection(): HTMLElement {
   middleSection.append(createGamesFilter(), createSortingElement());
   // ====
 
-  librarySection.append(topSectionBlock, middleSection);
+  librarySection.append(topSectionBlock, middleSection, createGameCardsWrapper(gamesData));
 
   return librarySection;
 }
