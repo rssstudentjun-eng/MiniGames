@@ -25,7 +25,6 @@ export function createLibrarySection(): HTMLElement {
   middleSection.classList.add('middleSection');
 
   middleSection.append(createGamesFilter(), createSortingElement());
-  // ====
 
   librarySection.append(topSectionBlock, middleSection, createGameCardsWrapper(gamesData));
 

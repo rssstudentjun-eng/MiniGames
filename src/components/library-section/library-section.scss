@@ -1,10 +1,75 @@
+@use '../../styles/mixins' as *;
+
 .librarySection {
   border-top: 2px solid var(--on-primary);
-  padding-top: 40px;
+  padding: 44px 108px;
+}
+
+.sectionHeader {
+  color: var(--on-primary);
+  font-weight: var(--bold);
+  font-size: var(--display-large);
+  margin-bottom: 10px;
+}
+
+.subTitle {
+  color: var(--on-bg);
+  font-weight: var(--medium);
+  font-size: var(--body-large);
+  letter-spacing: 0.7px;
+  margin-bottom: 55px;
 }
 
 .middleSection {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 15px;
+}
+
+@include pre-middle {
+  .librarySection {
+    padding: 27px 30px;
+  }
+
+  .sectionHeader {
+    margin-bottom: 7px;
+  }
+
+  .subTitle {
+    letter-spacing: 0.6px;
+    font-size: var(--body-medium);
+    margin-bottom: 41px;
+  }
+  .middleSection {
+    align-items: flex-start;
+  }
+}
+
+@include middle {
+  .sectionHeader {
+    font-size: var(--display-medium);
+  }
+
+  .middleSection {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+@include tablet {
+  .sectionHeader {
+    font-size: var(--headline-medium);
+  }
+
+  .librarySection {
+    padding: 15px 16px;
+  }
+  .sectionHeader {
+    margin-bottom: 11px;
+  }
+  .subTitle {
+    letter-spacing: 0;
+    margin-bottom: 27px;
+  }
 }

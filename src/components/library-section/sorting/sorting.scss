@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 .sortingWrapper {
   position: relative;
   width: 200px;
@@ -70,4 +72,21 @@
   background: var(--primary);
   font-weight: var(--bold);
   padding-left: 16px;
+}
+
+@include middle {
+  .sortingButton {
+    min-width: 183px;
+    height: 38px;
+    padding: 10px 14px;
+  }
+}
+
+@include tablet {
+  .sortingWrapper {
+    width: 100%;
+  }
+  .sortingButton {
+    width: 100%;
+  }
 }

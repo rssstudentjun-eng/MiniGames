@@ -4,7 +4,6 @@ import { GameType } from '../../types/game.ts';
 import './game-card.scss';
 
 export function createGameCard(game: GameType) {
-  console.log(game);
   const gameCard = document.createElement('div');
   gameCard.classList.add('gameCard');
 
@@ -28,13 +27,18 @@ export function createGameCard(game: GameType) {
   gameCardCategoryGame.textContent = game.category;
 
   const gameCardPrice = document.createElement('p');
-  gameCardPrice.classList.add('gameCardPrice');
+
+  gameCardPrice.classList.add(
+    'gameCardPrice',
+    game.price === 'Free' ? 'gameCardPriceString' : 'gameCardPriceNumber',
+  );
+
   gameCardPrice.textContent = String(game.price);
 
   const gameCardDescription = document.createElement('p');
   gameCardDescription.classList.add('gameCardDescription');
   gameCardDescription.textContent = game.shortDescription;
-  // =====
+
   const gameCardBottom = document.createElement('div');
   gameCardBottom.classList.add('gameCardBottom');
 
