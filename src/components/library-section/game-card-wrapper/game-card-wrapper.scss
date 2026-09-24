@@ -1,0 +1,14 @@
+@use '../../../styles/mixins' as *;
+
+.gameCardsWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+@include tablet {
+  .gameCardsWrapper {
+    gap: 16px;
+  }
+}

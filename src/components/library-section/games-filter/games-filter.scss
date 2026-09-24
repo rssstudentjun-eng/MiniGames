@@ -25,3 +25,33 @@
 .activeBtn {
   background: var(--primary);
 }
+
+@include middle {
+  .gamesFilterWrapper {
+    gap: 6px;
+  }
+}
+
+@include tablet {
+  .gamesFilterWrapper {
+    flex-wrap: nowrap;
+    min-width: 0;
+    width: 100%;
+    overflow-x: auto;
+
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .btn {
+    font-size: 12px;
+  }
+}
