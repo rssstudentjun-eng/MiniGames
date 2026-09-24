@@ -164,7 +164,6 @@
 
   .gameCard {
     flex-direction: column;
-    //height: 395px;
     height: 100%;
   }
   .gameCardTop {
@@ -192,7 +191,6 @@
     margin-bottom: 28px;
   }
 
-  //  ===
   .gameCardInfoBlock {
     padding: 16px 14px 13px 15px;
     display: grid;
@@ -247,5 +245,10 @@
     grid-area: button;
     width: 100%;
     margin-top: 8px;
+  }
+}
+@include mobile {
+  .detailsButton {
+    padding: 10px 16px;
   }
 }

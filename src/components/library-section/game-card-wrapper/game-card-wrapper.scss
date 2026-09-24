@@ -9,6 +9,13 @@
 
 @include tablet {
   .gameCardsWrapper {
-    gap: 16px;
+    gap: 24px;
+    padding-right: 18px;
+  }
+}
+
+@include mobile {
+  .gameCardsWrapper {
+    gap: 13px;
   }
 }

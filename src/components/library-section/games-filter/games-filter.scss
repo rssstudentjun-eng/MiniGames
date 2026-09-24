@@ -4,6 +4,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  margin-left: 13px;
 }
 
 .btn {
@@ -38,6 +39,7 @@
     min-width: 0;
     width: 100%;
     overflow-x: auto;
+    margin-left: 0;
 
     scrollbar-width: none;
 
@@ -51,6 +53,15 @@
     }
   }
 
+  .btn {
+    font-size: 14px;
+  }
+}
+
+@include mobile {
+  .gamesFilterWrapper {
+    gap: 5px;
+  }
   .btn {
     font-size: 12px;
   }
