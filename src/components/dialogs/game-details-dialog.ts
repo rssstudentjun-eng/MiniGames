@@ -4,6 +4,7 @@ import heartIcon from '../../assets/icons/heartIcon.svg';
 import { temporaryData } from './game-details-data-temporary.ts';
 import dialogMainImage from '../../../src/assets/images/tukoni-forest-keepers-hero.jpg';
 import sendCommentIcon from '../../assets/icons/sendCommentIcon.svg';
+import closeIcon from '../../assets/icons/closeIcon.svg';
 import cupImageIcon from '../../assets/images/cup.png';
 import medal_1 from '../../assets/images/medal_1.png';
 import medal_2 from '../../assets/images/medal_2.png';
@@ -12,6 +13,7 @@ import medal_3 from '../../assets/images/medal_3.png';
 const medals = [medal_1, medal_2, medal_3];
 
 export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
+  //   make comment for open
   if (!gameDetailsDialog.open || gameDetailsDialog.classList.contains('isClosing')) {
     return;
   }
@@ -22,6 +24,7 @@ export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   }
 
   gameDetailsDialog.classList.add('isClosing');
+  //   =======
 }
 
 export function createGameDetailsDialog() {
@@ -34,7 +37,11 @@ export function createGameDetailsDialog() {
   dialogContent.classList.add('gameDetailsDialogContent');
 
   const closeButton = document.createElement('button');
-  closeButton.textContent = 'Close';
+  const closeButtonImage = document.createElement('img');
+  closeButtonImage.alt = 'Close Icon';
+  closeButtonImage.classList.add('closeButtonImage');
+  closeButtonImage.src = closeIcon;
+  closeButton.append(closeButtonImage);
   closeButton.type = 'button';
   closeButton.classList.add('gameDetailsDialogClose');
 
@@ -68,6 +75,7 @@ export function createGameDetailsDialog() {
   statsInfoBlock.append(ratingBlock, likesBlock);
   //======
   const dialogTitle = document.createElement('h2');
+  dialogTitle.classList.add('dialogTitle');
   dialogTitle.textContent = gameData.name;
   dialogTitle.id = 'game-details-title';
   gameDetailsDialog.setAttribute('aria-labelledby', dialogTitle.id);
@@ -96,10 +104,12 @@ export function createGameDetailsDialog() {
     item.append(label, description);
     gameInfoWrapper.append(item);
   }
+
   const topRecordsBlock = document.createElement('div');
   topRecordsBlock.classList.add('topRecordsBlock');
   const topRecordsTitle = document.createElement('h3');
   topRecordsTitle.textContent = 'Top Records';
+  topRecordsTitle.classList.add('topRecordsTitle');
   const cupImage = document.createElement('img');
   cupImage.src = cupImageIcon;
   topRecordsTitle.prepend(cupImage);
@@ -126,7 +136,7 @@ export function createGameDetailsDialog() {
 
     const score = document.createElement('p');
     score.classList.add('gameRecordPoint');
-    score.textContent = String(value.score);
+    score.textContent = `${(value.score / 1000).toFixed(3).replace('.', ',')} pts`;
 
     const millisecondsPerDay = 1000 * 60 * 60 * 24;
     const difference = Date.now() - new Date(value.achievedAt).getTime();
@@ -139,10 +149,11 @@ export function createGameDetailsDialog() {
     item.append(name, score, daysCounter);
     topRecordsBlock.append(item);
   }
-  // ====
+
   const commentsBlock = document.createElement('div');
   commentsBlock.classList.add('commentsBlock');
   const commentsBlockTitle = document.createElement('h3');
+  commentsBlockTitle.classList.add('commentsBlockTitle');
   commentsBlockTitle.textContent = `Comments (${comments.length})`;
 
   const commentInputBlock = document.createElement('div');
@@ -152,7 +163,7 @@ export function createGameDetailsDialog() {
   userFirstLetterName.classList.add('userFirstLetterName');
   userFirstLetterName.textContent = 'U';
 
-  const inputComment = document.createElement('input');
+  const inputComment = document.createElement('textarea');
   inputComment.classList.add('inputComment');
   inputComment.placeholder = 'Write a comment...';
 
@@ -164,7 +175,12 @@ export function createGameDetailsDialog() {
 
   commentInputBlock.append(userFirstLetterName, inputComment, sendCommentButton);
 
+  // ==========================
+  // ==========================
+  // ==========================
+
   const commentsList = document.createElement('ul');
+  commentsList.classList.add('commentsList');
 
   for (const comment of comments) {
     const commentItem = document.createElement('li');
@@ -205,8 +221,6 @@ export function createGameDetailsDialog() {
     commentsList.append(commentItem);
   }
 
-  commentsList.classList.add('commentsList');
-
   commentsBlock.append(commentsBlockTitle, commentInputBlock, commentsList);
 
   // ====
@@ -232,9 +246,10 @@ export function createGameDetailsDialog() {
 
   // ====
 
-  dialogContent.append(
-    closeButton,
-    cardImage,
+  const gameInfoBlock = document.createElement('div');
+  gameInfoBlock.classList.add('gameInfoBlock');
+
+  gameInfoBlock.append(
     titleBlock,
     dialogDescription,
     gameInfoWrapper,
@@ -242,6 +257,8 @@ export function createGameDetailsDialog() {
     topRecordsBlock,
     commentsBlock,
   );
+
+  dialogContent.append(closeButton, cardImage, gameInfoBlock);
 
   gameDetailsDialog.append(dialogContent);
 
@@ -253,7 +270,9 @@ export function createGameDetailsDialog() {
   });
   gameDetailsDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
+    //   make comment for open
     closeDialog(gameDetailsDialog);
+    //   ====
   });
   gameDetailsDialog.addEventListener('close', () => {
     gameDetailsDialog.remove();
