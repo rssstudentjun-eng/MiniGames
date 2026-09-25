@@ -5,6 +5,7 @@ import codeIcon from '../../assets/icons/codeIcon.svg';
 import rsIcon from '../../assets/icons/rsIcon.svg';
 import rss_feedIcon from '../../assets/icons/rss_feedIcon.svg';
 import shareIcon from '../../assets/icons/shareIcon.svg';
+import { Page } from '../../app';
 
 interface FooterLinkGroup {
   title: string;
@@ -15,14 +16,15 @@ interface FooterLink {
   label: string;
   href: string;
   icon?: string;
+  page?: Page;
 }
 
 const footerLinkGroups: FooterLinkGroup[] = [
   {
     title: 'Explore',
     links: [
-      { label: 'Home', href: '/' },
-      { label: 'Library', href: '/' },
+      { label: 'Home', href: '/', page: 'home' },
+      { label: 'Library', href: '/library', page: 'library' },
       { label: 'Categories', href: '/' },
       { label: 'Tournaments', href: '/' },
     ],
@@ -63,8 +65,9 @@ function createFooterLinkGroup(group: FooterLinkGroup): HTMLElement {
 
     const link = document.createElement('a');
     link.className = 'footerLink';
-
     link.href = item.href;
+
+    if (item.page) link.dataset.page = item.page;
 
     if (item.icon) {
       link.classList.add('footerIconLink');

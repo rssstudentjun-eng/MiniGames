@@ -1,0 +1,93 @@
+@use '../../../styles/mixins' as *;
+
+.sortingWrapper {
+  position: relative;
+  width: 200px;
+}
+
+.sortingWrapper:has(.sortingList.open) .sortingButton {
+  background: var(--surface);
+}
+
+.sortingButton {
+  font-size: var(--body-small);
+  font-weight: var(--bold);
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  gap: 4px;
+  background: var(--white);
+  cursor: pointer;
+  border: 2px solid var(--on-primary);
+  border-radius: 24px;
+  padding: 10px 20px;
+  min-width: 190px;
+  height: 44px;
+
+  &:hover,
+  &:active {
+    background: var(--surface);
+  }
+}
+
+.sortingList {
+  box-shadow: 4px 4px 0 0 var(--black);
+  background: var(--white);
+  border: 2px solid var(--on-primary);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: none;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.sortingList.open {
+  display: block;
+}
+
+.sortingOption {
+  font-weight: var(--medium);
+  font-size: var(--body-small);
+  color: var(--on-primary);
+  width: 100%;
+  padding: 16px 16px 16px 37px;
+  border: none;
+  border-bottom: 1px solid var(--black);
+  text-align: left;
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+}
+
+.sortingOption:hover {
+  background: var(--surface);
+}
+
+.sortingOption.active {
+  background: var(--primary);
+  font-weight: var(--bold);
+  padding-left: 16px;
+}
+
+@include middle {
+  .sortingButton {
+    min-width: 183px;
+    height: 38px;
+    padding: 10px 14px;
+  }
+}
+
+@include mobile {
+  .sortingWrapper {
+    width: 100%;
+    padding-right: 15px;
+  }
+  .sortingButton {
+    width: 100%;
+  }
+}

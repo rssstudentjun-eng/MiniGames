@@ -4,7 +4,7 @@ import { createAuthDialog, openAuthDialog } from '../dialogs/auth-dialog';
 
 const navItems = [
   { label: 'Home', href: '/' },
-  { label: 'Library', href: '/' },
+  { label: 'Library', href: '/library' },
   { label: 'Tournaments', href: '/' },
   { label: 'Community', href: '/' },
 ];
@@ -22,15 +22,10 @@ function createNavList(className: string): HTMLUListElement {
     link.href = navItem.href;
 
     if (navItem.label === 'Home') {
-      link.classList.add('headerNavLinkActive');
+      link.dataset.page = 'home';
+    } else if (navItem.label === 'Library') {
+      link.dataset.page = 'library';
     }
-
-    link.addEventListener('click', () => {
-      const activeLink = navList.querySelector('.headerNavLinkActive');
-
-      activeLink?.classList.remove('headerNavLinkActive');
-      link.classList.add('headerNavLinkActive');
-    });
 
     item.append(link);
     navList.append(item);
@@ -92,6 +87,29 @@ export function createHeader(): HTMLElement {
   const mobileMenu = document.createElement('div');
   mobileMenu.classList.add('mobileMenu');
 
+  function closeMobileMenu(): void {
+    mobileMenu.classList.remove('mobileMenuOpen');
+    document.body.classList.remove('scrollLocked');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', 'Open menu');
+  }
+
+  mobileMenu.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+      return;
+    }
+
+    const link = event.target.closest<HTMLAnchorElement>('a[data-page]');
+    const page = link?.dataset.page;
+
+    if (page !== 'home' && page !== 'library') {
+      return;
+    }
+
+    closeMobileMenu();
+    menuButton.focus();
+  });
+
   const mobileLogo = logo.cloneNode(true) as HTMLAnchorElement;
   const mobileNavList = createNavList('mobileNavList');
 
@@ -116,11 +134,7 @@ export function createHeader(): HTMLElement {
       return;
     }
 
-    mobileMenu.classList.remove('mobileMenuOpen');
-    document.body.classList.remove('scrollLocked');
-
-    menuButton.setAttribute('aria-expanded', 'false');
-    menuButton.setAttribute('aria-label', 'Open menu');
+    closeMobileMenu();
   });
 
   container.append(logo, navList, buttonsWrapper, menuButton);
@@ -134,10 +148,7 @@ export function createHeader(): HTMLElement {
   ] as const) {
     trigger.addEventListener('click', () => {
       if (mobileMenu.classList.contains('mobileMenuOpen')) {
-        mobileMenu.classList.remove('mobileMenuOpen');
-        document.body.classList.remove('scrollLocked');
-        menuButton.setAttribute('aria-expanded', 'false');
-        menuButton.setAttribute('aria-label', 'Open menu');
+        closeMobileMenu();
         menuButton.focus();
       }
       openAuthDialog(authDialog, mode);

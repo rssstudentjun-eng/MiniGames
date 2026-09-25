@@ -1,0 +1,92 @@
+@use '../../../styles/mixins' as *;
+
+.paginationWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 40px 0;
+}
+
+.paginationList {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.paginationBtn,
+.paginationArrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid var(--on-primary);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--on-primary);
+  font-weight: var(--bold);
+  font-size: var(--body-small);
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+
+  &:hover:not(:disabled):not(.active) {
+    background: var(--surface);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    border-color: var(--outline-variant);
+    background: transparent;
+    cursor: default;
+
+    img {
+      opacity: 0.35;
+    }
+  }
+}
+
+.paginationBtn.active {
+  background: var(--on-primary);
+  color: var(--white);
+}
+
+.leftBtn img {
+  transform: rotate(180deg);
+}
+
+@include tablet {
+  .paginationList {
+    gap: 9px;
+  }
+  .paginationWrapper {
+    gap: 6px;
+    padding-right: 16px;
+  }
+}
+
+@include after-tablet {
+  .paginationWrapper,
+  .paginationList {
+    gap: 10px;
+  }
+
+  .paginationBtn,
+  .paginationArrow {
+    width: 40px;
+    height: 40px;
+    font-size: var(--body-medium);
+  }
+}
+
+@include mobile {
+  .paginationWrapper {
+    margin: 18px 0;
+  }
+}
