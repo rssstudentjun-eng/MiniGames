@@ -2,6 +2,7 @@ import heartIcon from '../../../../assets/icons/heartIcon.svg';
 import starIcon from '../../../../assets/icons/starIcon.svg';
 import { GameType } from '../../types/game.ts';
 import './game-card.scss';
+import { createGameDetailsDialog } from '../../../dialogs/game-details-dialog.ts';
 
 export function createGameCard(game: GameType) {
   const gameCard = document.createElement('div');
@@ -46,6 +47,14 @@ export function createGameCard(game: GameType) {
   detailsButton.type = 'button';
   detailsButton.classList.add('detailsButton');
   detailsButton.textContent = 'Details';
+
+  // =====
+  detailsButton.addEventListener('click', () => {
+    const gameDetailsDialog = createGameDetailsDialog();
+    document.body.append(gameDetailsDialog);
+    gameDetailsDialog.showModal();
+  });
+  // =====
 
   const statsInfoBlock = document.createElement('div');
   statsInfoBlock.classList.add('statsInfoBlock');
