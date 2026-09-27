@@ -12,6 +12,12 @@
   overflow-y: auto;
   box-shadow: 8px 8px 0 0 var(--black);
 
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   &::backdrop {
     background: rgb(0 0 0 / 50%);
   }
@@ -370,8 +376,10 @@
     align-items: start;
     gap: 15px;
   }
-  .statsInfoBlock {
-    align-self: start;
+
+  .gameDetailsDialog .statsInfoBlock {
+    align-self: flex-start;
+    justify-content: flex-start;
     gap: 24px;
   }
 

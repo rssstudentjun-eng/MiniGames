@@ -9,9 +9,11 @@ export function initializeSlider(
   nextButton: HTMLButtonElement,
 ) {
   const cards = [...track.querySelectorAll<HTMLElement>('.carouselCard')];
+
   const tabletQuery = globalThis.matchMedia('(max-width: 768px)');
   let currentIndex = 0;
   let isMoving = false;
+  let isDragging = false;
   let pointerId: number | undefined;
   let startX = 0;
   let startY = 0;
@@ -97,6 +99,7 @@ export function initializeSlider(
     if (pointerId !== undefined || !event.isPrimary || event.button !== 0) return;
 
     pointerId = event.pointerId;
+    isDragging = false;
     startX = event.clientX;
     startY = event.clientY;
     pauseAutoplay();
@@ -108,6 +111,8 @@ export function initializeSlider(
     pointerId = undefined;
     const distanceX = event.clientX - startX;
     const distanceY = event.clientY - startY;
+    isDragging =
+      event.type === 'pointercancel' || Math.abs(distanceX) > 10 || Math.abs(distanceY) > 10;
     if (
       event.type !== 'pointercancel' &&
       Math.abs(distanceX) >= 40 &&
@@ -117,6 +122,13 @@ export function initializeSlider(
     } else {
       startAutoplay();
     }
+  }
+
+  function handleClick(event: MouseEvent) {
+    if (!isDragging || event.detail === 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -140,6 +152,7 @@ export function initializeSlider(
   previousButton.addEventListener('click', showPrevious);
   nextButton.addEventListener('click', showNext);
   track.addEventListener('pointerdown', startSwipe);
+  track.addEventListener('click', handleClick, { capture: true });
   track.addEventListener('keydown', handleKeydown);
   globalThis.addEventListener('pointerup', finishSwipe);
   globalThis.addEventListener('pointercancel', finishSwipe);
@@ -155,6 +168,7 @@ export function initializeSlider(
     previousButton.removeEventListener('click', showPrevious);
     nextButton.removeEventListener('click', showNext);
     track.removeEventListener('pointerdown', startSwipe);
+    track.removeEventListener('click', handleClick, { capture: true });
     track.removeEventListener('keydown', handleKeydown);
     globalThis.removeEventListener('pointerup', finishSwipe);
     globalThis.removeEventListener('pointercancel', finishSwipe);

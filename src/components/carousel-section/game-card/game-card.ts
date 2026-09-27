@@ -2,13 +2,20 @@ import './game-card.scss';
 import star from '../../../assets/icons/starIcon.svg';
 import heart from '../../../assets/icons/heartIcon.svg';
 import type { GameType } from '../../library-section/types/game.ts';
+import { createGameDetailsDialog } from '../../dialogs/game-details-dialog';
 
 export const createGameCard = (game: GameType) => {
   const card = document.createElement('li');
   card.className = 'carouselCard';
-  card.tabIndex = 0;
-  const content = document.createElement('div');
+  const content = document.createElement('button');
+  content.type = 'button';
   content.className = 'carouselCardContent';
+  content.setAttribute('aria-label', `View details: ${game.name}`);
+  content.addEventListener('click', () => {
+    const dialog = createGameDetailsDialog();
+    document.body.append(dialog);
+    dialog.showModal();
+  });
 
   const image = document.createElement('img');
   image.className = 'carouselCardImage';
@@ -26,14 +33,14 @@ export const createGameCard = (game: GameType) => {
   heartImage.src = heart;
   heartImage.alt = 'heart icon';
 
-  const info = document.createElement('div');
+  const info = document.createElement('span');
   info.className = 'carouselCardInfo';
 
   const title = document.createElement('span');
   title.className = 'carouselCardTitle';
   title.textContent = game.name;
 
-  const stats = document.createElement('div');
+  const stats = document.createElement('span');
   stats.className = 'carouselCardStats';
 
   const rating = document.createElement('span');
