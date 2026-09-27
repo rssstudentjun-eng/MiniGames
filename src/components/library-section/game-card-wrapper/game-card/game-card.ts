@@ -51,9 +51,7 @@ export function createGameCard(game: GameType) {
   detailsButton.addEventListener('click', () => {
     const gameDetailsDialog = createGameDetailsDialog();
     document.body.append(gameDetailsDialog);
-
     gameDetailsDialog.showModal();
-    // gameDetailsDialog.show();
   });
 
   const statsInfoBlock = document.createElement('div');

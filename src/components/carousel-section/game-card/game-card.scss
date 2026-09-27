@@ -1,41 +1,42 @@
 @use '../../../styles/mixins' as *;
 
 .carouselTrack {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 5fr)
-    minmax(0, 12fr)
-    minmax(0, 34fr)
-    minmax(0, 12fr)
-    minmax(0, 5fr);
-
-  gap: var(--size-1);
-  margin: 0;
-  padding: 0 var(--size-1);
-  list-style: none;
+  --card-height: 384px;
+  position: relative;
+  overflow: hidden;
   width: 100%;
+  height: calc(var(--card-height) + 8px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .carouselCard {
   container-type: inline-size;
-
-  position: relative;
-  height: 384px;
+  position: absolute;
+  top: 0;
+  height: var(--card-height);
   min-width: 0;
-
   overflow: hidden;
   border: 2px solid var(--on-primary);
   border-radius: 20px;
-
   box-shadow: 4px 4px 0 0 var(--on-primary);
   background: var(--white);
 }
 
-.carouselCardRating,
-.carouselCardLikes {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--size-1);
+.carouselCardContent {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  text-align: left;
+}
+
+.carouselCard:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: -5px;
 }
 
 .carouselCardImage {
@@ -43,6 +44,13 @@
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+.carouselCardStar,
+.carouselCardHeart {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .carouselCardInfo {
@@ -53,25 +61,26 @@
   left: 0;
   padding: 24px 15px 18px;
   color: var(--white);
+  pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.4) 17.31%,
-    rgba(0, 0, 0, 0.85) 46.15%
+    transparent,
+    rgb(0 0 0 / 40%) 17.31%,
+    rgb(0 0 0 / 85%) 46.15%
   );
 }
 
-.carouselCard:nth-child(n + 2):nth-child(-n + 4) {
+@container (min-width: 284px) {
   .carouselCardInfo {
     display: block;
   }
 }
 
 .carouselCardTitle {
+  display: block;
   font-weight: var(--bold);
   font-size: var(--body-large);
-  color: var(--white);
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -82,67 +91,35 @@
   justify-content: space-between;
   font-weight: var(--bold);
   font-size: var(--body-medium);
-  color: var(--white);
 }
 
-@container (min-width: 288px) {
-  .carouselCardInfo {
-    display: block;
-  }
-}
-
-.carouselButton:disabled {
-  cursor: default;
-}
-
-//Media
-@include pre-middle {
-  .carouselTrack .carouselCard:not(:nth-child(3)) {
-    .carouselCardInfo {
-      display: none;
-    }
-  }
+.carouselCardRating,
+.carouselCardLikes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @include tablet {
-  .carouselCard {
-    height: 279px;
-
-    &:first-child,
-    &:last-child {
-      display: none;
-    }
-  }
-
   .carouselTrack {
-    grid-template-columns:
-      minmax(0, 12fr)
-      minmax(0, 53fr)
-      minmax(0, 12fr);
-    gap: var(--size-1);
-    padding: 0 var(--size-1);
+    --card-height: 279px;
   }
 }
 
 @include mobile {
-  .carouselCard {
-    height: 200px;
-    border: 2.5px solid var(--on-primary);
-    border-radius: var(--corner-large);
-    box-shadow: 4px 4px 0 0 var(--on-primary);
+  .carouselTrack {
+    --card-height: 200px;
   }
-
+  .carouselCard {
+    border-radius: var(--corner-large);
+  }
   .carouselCardStats {
     font-size: var(--label-medium);
   }
-
   .carouselCardRating,
   .carouselCardLikes {
-    display: inline-flex;
-    align-items: center;
     gap: 2px;
   }
-
   .carouselCardInfo {
     padding: 24px 12px 18px;
   }

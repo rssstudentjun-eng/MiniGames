@@ -9,10 +9,19 @@ export type Page = 'home' | 'library';
 const app = document.createElement('div');
 
 app.id = 'app';
+const pageState: { destroy?: () => void } = {};
 
 function renderPage(page: Page): void {
-  const pageContent = page === 'home' ? createHomePage() : createLibraryPage();
-  main.replaceChildren(pageContent);
+  pageState.destroy?.();
+  pageState.destroy = undefined;
+
+  if (page === 'home') {
+    const homePage = createHomePage();
+    main.replaceChildren(homePage.content);
+    pageState.destroy = homePage.destroy;
+  } else {
+    main.replaceChildren(createLibraryPage());
+  }
 
   for (const link of header.querySelectorAll<HTMLAnchorElement>('[data-page]')) {
     const isActive = link.dataset.page === page;

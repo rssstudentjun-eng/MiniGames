@@ -189,7 +189,7 @@ export function createGameDetailsDialog() {
 
     const commentAuthor = document.createElement('p');
     commentAuthor.classList.add('commentAuthor');
-    commentAuthor.textContent = comment.authorName; // ======
+    commentAuthor.textContent = comment.authorName;
     if (index === 0) {
       commentAuthorFirstLetter.classList.add('firstComment');
     } else if (index === 2) {

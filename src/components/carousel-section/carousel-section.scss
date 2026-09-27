@@ -47,7 +47,6 @@
   }
 }
 
-//Media
 @include pre-middle {
   .carouselSection {
     padding: 24px 37px;
@@ -71,9 +70,6 @@
   .carouselSectionHeader {
     margin: 0 0 23px;
   }
-}
-
-@include premobile {
 }
 
 @include mobile {

@@ -1,30 +1,23 @@
 import './game-card.scss';
 import star from '../../../assets/icons/starIcon.svg';
 import heart from '../../../assets/icons/heartIcon.svg';
+import type { GameType } from '../../library-section/types/game.ts';
 
-export interface Game {
-  slug: string;
-  name: string;
-  category: string;
-  price: string;
-  shortDescription: string;
-  rating: number;
-  likesCount: number;
-  cardImage: string;
-  featured: boolean;
-}
-
-export const createGameCard = (game: Game) => {
+export const createGameCard = (game: GameType) => {
   const card = document.createElement('li');
   card.className = 'carouselCard';
+  card.tabIndex = 0;
+  const content = document.createElement('div');
+  content.className = 'carouselCardContent';
 
   const image = document.createElement('img');
   image.className = 'carouselCardImage';
   image.src = game.cardImage;
   image.alt = game.name;
+  image.draggable = false;
 
   const starImage = document.createElement('img');
-  starImage.className = 'carouselCardImage';
+  starImage.className = 'carouselCardStar';
   starImage.src = star;
   starImage.alt = 'star Icon';
 
@@ -36,7 +29,7 @@ export const createGameCard = (game: Game) => {
   const info = document.createElement('div');
   info.className = 'carouselCardInfo';
 
-  const title = document.createElement('h3');
+  const title = document.createElement('span');
   title.className = 'carouselCardTitle';
   title.textContent = game.name;
 
@@ -53,7 +46,8 @@ export const createGameCard = (game: Game) => {
 
   stats.append(rating, likes);
   info.append(title, stats);
-  card.append(image, info);
+  content.append(image, info);
+  card.append(content);
 
   return card;
 };
