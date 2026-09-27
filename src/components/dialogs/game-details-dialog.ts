@@ -109,6 +109,7 @@ export function createGameDetailsDialog() {
   topRecordsTitle.textContent = 'Top Records';
   topRecordsTitle.classList.add('topRecordsTitle');
   const cupImage = document.createElement('img');
+  cupImage.alt = '';
   cupImage.src = cupImageIcon;
   topRecordsTitle.prepend(cupImage);
   topRecordsBlock.append(topRecordsTitle);
@@ -168,6 +169,7 @@ export function createGameDetailsDialog() {
   const sendCommentButton = document.createElement('button');
   sendCommentButton.classList.add('sendCommentButton');
   const sendCommentButtonImg = document.createElement('img');
+  sendCommentButtonImg.alt = 'Send comment';
   sendCommentButtonImg.src = sendCommentIcon;
   sendCommentButton.append(sendCommentButtonImg);
 
@@ -239,6 +241,7 @@ export function createGameDetailsDialog() {
   buttonText.textContent = 'Add to favorites';
 
   const heartIconButton = document.createElement('img');
+  heartIconButton.alt = '';
   heartIconButton.classList.add('heartIconButton');
   heartIconButton.src = grayHeartIcon;
 
