@@ -1,6 +1,7 @@
 import './game-details-dialog.scss';
 import starIcon from '../../assets/icons/starIcon.svg';
 import heartIcon from '../../assets/icons/heartIcon.svg';
+import grayHeartIcon from '../../assets/icons/grayHeartIcon.svg';
 import { temporaryData } from './game-details-data-temporary.ts';
 import dialogMainImage from '../../../src/assets/images/tukoni-forest-keepers-hero.jpg';
 import sendCommentIcon from '../../assets/icons/sendCommentIcon.svg';
@@ -13,7 +14,6 @@ import medal_3 from '../../assets/images/medal_3.png';
 const medals = [medal_1, medal_2, medal_3];
 
 export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
-  //   make comment for open
   if (!gameDetailsDialog.open || gameDetailsDialog.classList.contains('isClosing')) {
     return;
   }
@@ -24,7 +24,6 @@ export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   }
 
   gameDetailsDialog.classList.add('isClosing');
-  //   =======
 }
 
 export function createGameDetailsDialog() {
@@ -52,7 +51,6 @@ export function createGameDetailsDialog() {
 
   const titleBlock = document.createElement('div');
   titleBlock.classList.add('titleBlock');
-  // ======
   const statsInfoBlock = document.createElement('div');
   statsInfoBlock.classList.add('statsInfoBlock');
 
@@ -73,7 +71,7 @@ export function createGameDetailsDialog() {
   likesBlock.prepend(likesBlockImg);
 
   statsInfoBlock.append(ratingBlock, likesBlock);
-  //======
+
   const dialogTitle = document.createElement('h2');
   dialogTitle.classList.add('dialogTitle');
   dialogTitle.textContent = gameData.name;
@@ -175,14 +173,10 @@ export function createGameDetailsDialog() {
 
   commentInputBlock.append(userFirstLetterName, inputComment, sendCommentButton);
 
-  // ==========================
-  // ==========================
-  // ==========================
-
   const commentsList = document.createElement('ul');
   commentsList.classList.add('commentsList');
 
-  for (const comment of comments) {
+  for (const [index, comment] of comments.entries()) {
     const commentItem = document.createElement('li');
     commentItem.classList.add('commentItem');
 
@@ -195,7 +189,12 @@ export function createGameDetailsDialog() {
 
     const commentAuthor = document.createElement('p');
     commentAuthor.classList.add('commentAuthor');
-    commentAuthor.textContent = comment.authorName;
+    commentAuthor.textContent = comment.authorName; // ======
+    if (index === 0) {
+      commentAuthorFirstLetter.classList.add('firstComment');
+    } else if (index === 2) {
+      commentAuthorFirstLetter.classList.add('thirdComment');
+    }
 
     const daysCounter = document.createElement('p');
     daysCounter.classList.add('daysCounter');
@@ -213,7 +212,8 @@ export function createGameDetailsDialog() {
     const commentLikesBlock = document.createElement('p');
     commentLikesBlock.classList.add('commentLikesBlock');
     const heartIconComment = document.createElement('img');
-    heartIconComment.src = heartIcon;
+    heartIconComment.src = index < 2 ? grayHeartIcon : heartIcon;
+    heartIconComment.alt = '';
     commentLikesBlock.textContent = String(comment.likesCount);
     commentLikesBlock.prepend(heartIconComment);
 
@@ -222,8 +222,6 @@ export function createGameDetailsDialog() {
   }
 
   commentsBlock.append(commentsBlockTitle, commentInputBlock, commentsList);
-
-  // ====
 
   const dialogButtonsWrapper = document.createElement('div');
   dialogButtonsWrapper.classList.add('dialogButtonsWrapper');
@@ -235,16 +233,19 @@ export function createGameDetailsDialog() {
 
   const addFavoritesButton = document.createElement('button');
   addFavoritesButton.classList.add('addFavoritesButton');
-  addFavoritesButton.type = 'button';
-  addFavoritesButton.textContent = 'Add to Favorites';
+
+  const buttonText = document.createElement('span');
+  buttonText.classList.add('addFavoritesButtonText');
+  buttonText.textContent = 'Add to favorites';
+
   const heartIconButton = document.createElement('img');
   heartIconButton.classList.add('heartIconButton');
-  heartIconButton.src = heartIcon;
-  addFavoritesButton.prepend(heartIconButton);
+  heartIconButton.src = grayHeartIcon;
+
+  addFavoritesButton.replaceChildren(heartIconButton, buttonText);
+  addFavoritesButton.setAttribute('aria-label', 'Add to favorites');
 
   dialogButtonsWrapper.append(playButton, addFavoritesButton);
-
-  // ====
 
   const gameInfoBlock = document.createElement('div');
   gameInfoBlock.classList.add('gameInfoBlock');
@@ -262,7 +263,6 @@ export function createGameDetailsDialog() {
 
   gameDetailsDialog.append(dialogContent);
 
-  // ====
   gameDetailsDialog.addEventListener('click', (event) => {
     if (event.target === gameDetailsDialog) {
       closeDialog(gameDetailsDialog);
@@ -270,9 +270,7 @@ export function createGameDetailsDialog() {
   });
   gameDetailsDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    //   make comment for open
     closeDialog(gameDetailsDialog);
-    //   ====
   });
   gameDetailsDialog.addEventListener('close', () => {
     gameDetailsDialog.remove();
@@ -287,7 +285,6 @@ export function createGameDetailsDialog() {
   closeButton.addEventListener('click', () => {
     closeDialog(gameDetailsDialog);
   });
-  // ======
 
   return gameDetailsDialog;
 }

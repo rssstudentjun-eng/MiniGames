@@ -1,3 +1,5 @@
+@use '../../styles/mixins' as *;
+
 .gameDetailsDialog {
   width: min(600px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
@@ -23,7 +25,15 @@
   }
 }
 
-//=====
+.addFavoritesButtonText {
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.heartIconButton {
+  width: 20px;
+  height: 20px;
+}
 
 .gameInfoBlock {
   padding: 24px;
@@ -162,7 +172,7 @@
 .topRecordsBlock {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .gameRecordsItem {
@@ -177,7 +187,7 @@
 
 .gameRecordName {
   display: flex;
-  gap: 8px;
+  gap: 14px;
   align-items: center;
   justify-content: center;
 
@@ -197,7 +207,7 @@
   color: var(--on-bg);
   font-weight: 400;
   font-size: 12px;
-  margin-left: 16px;
+  margin-left: 20px;
 }
 
 .commentsBlockTitle {
@@ -339,7 +349,100 @@
   }
 }
 
-//=====
+.statsInfoBlock {
+  gap: 17px;
+}
+
+.firstComment {
+  background: var(--avatar-random-3);
+}
+
+.thirdComment {
+  background: var(--avatar-random-1);
+}
+
+@include after-tablet {
+  .dialogTitle {
+    width: 330px;
+  }
+  .titleBlock {
+    flex-direction: column;
+    align-items: start;
+    gap: 15px;
+  }
+  .statsInfoBlock {
+    align-self: start;
+    gap: 24px;
+  }
+
+  .gameInfoWrapper {
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .gameInfoItem {
+    padding: 8px 15px;
+    width: 153px;
+  }
+
+  .addFavoritesButtonText {
+    display: none;
+  }
+  .addFavoritesButton {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    gap: 0;
+  }
+
+  .playButton {
+    width: 263px;
+  }
+
+  .gameRecordsItem {
+    padding: 16px 16px;
+  }
+
+  .commentInputBlock {
+    gap: 10px;
+  }
+
+  .inputComment {
+    width: 215px;
+  }
+
+  .commentItem {
+    height: auto;
+    min-height: 128px;
+  }
+
+  .gameDetailsDialogClose {
+    padding: 7px;
+    right: 23px;
+  }
+
+  .gameDetailsDialog {
+    z-index: 1001;
+
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
+  }
+
+  .dialogDescription {
+    padding: 27px 0 44px 0;
+  }
+
+  .dialogButtonsWrapper {
+    padding: 26px 0;
+  }
+
+  .topRecordsBlock {
+    gap: 8px;
+  }
+}
 
 body:has(.gameDetailsDialog[open]) {
   overflow: hidden;
