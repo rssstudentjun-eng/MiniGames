@@ -5,6 +5,9 @@ import shelveThePointsImage from '../../../assets/images/shelve-the-potions-card
 import hearTopiaImage from '../../../assets/images/heartopia-card.jpg';
 import paliaImage from '../../../assets/images/palia-card.jpg';
 import catMailImage from '../../../assets/images/cat-mail-co-card.jpg';
+import tinyGladeImage from '../../../assets/images/tiny-glade-card.jpg';
+import tailSideCozyCafeSiImage from '../../../assets/images/tailside-cozy-cafe-sim-card.jpg';
+import islandersNewShoresImage from '../../../assets/images/islanders-new-shores-card.jpg';
 
 export const gamesData: GamesData = {
   data: [
@@ -125,7 +128,7 @@ export const gamesData: GamesData = {
         'A small diorama builder where you doodle whimsical castles, cozy cottages & romantic ruins. No management, combat or goals — just lovable dioramas.',
       rating: 4.9,
       likesCount: 67_300,
-      cardImage: '/assets/images/games/tiny-glade-card.jpg',
+      cardImage: tinyGladeImage,
       featured: true,
     },
     {
@@ -197,7 +200,7 @@ export const gamesData: GamesData = {
         'Run your own cozy café in Tailside! Brew coffee, decorate your café, follow small stories in the daily newspaper. Unlock new items, skills, villagers, and creature visitors.',
       rating: 4.8,
       likesCount: 35_600,
-      cardImage: '/assets/images/games/tailside-cozy-cafe-sim-card.jpg',
+      cardImage: tailSideCozyCafeSiImage,
       featured: true,
     },
     {
@@ -209,7 +212,7 @@ export const gamesData: GamesData = {
         'Build your island retreat in a calm, minimalist world with exciting new features that keep the classic charm while inspiring fresh creativity.',
       rating: 4.9,
       likesCount: 54_200,
-      cardImage: '/assets/images/games/islanders-new-shores-card.jpg',
+      cardImage: islandersNewShoresImage,
       featured: true,
     },
     {

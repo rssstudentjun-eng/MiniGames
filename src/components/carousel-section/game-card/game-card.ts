@@ -1,30 +1,30 @@
 import './game-card.scss';
 import star from '../../../assets/icons/starIcon.svg';
 import heart from '../../../assets/icons/heartIcon.svg';
+import type { GameType } from '../../library-section/types/game.ts';
+import { createGameDetailsDialog } from '../../dialogs/game-details-dialog';
 
-export interface Game {
-  slug: string;
-  name: string;
-  category: string;
-  price: string;
-  shortDescription: string;
-  rating: number;
-  likesCount: number;
-  cardImage: string;
-  featured: boolean;
-}
-
-export const createGameCard = (game: Game) => {
+export const createGameCard = (game: GameType) => {
   const card = document.createElement('li');
   card.className = 'carouselCard';
+  const content = document.createElement('button');
+  content.type = 'button';
+  content.className = 'carouselCardContent';
+  content.setAttribute('aria-label', `View details: ${game.name}`);
+  content.addEventListener('click', () => {
+    const dialog = createGameDetailsDialog();
+    document.body.append(dialog);
+    dialog.showModal();
+  });
 
   const image = document.createElement('img');
   image.className = 'carouselCardImage';
   image.src = game.cardImage;
   image.alt = game.name;
+  image.draggable = false;
 
   const starImage = document.createElement('img');
-  starImage.className = 'carouselCardImage';
+  starImage.className = 'carouselCardStar';
   starImage.src = star;
   starImage.alt = 'star Icon';
 
@@ -33,14 +33,14 @@ export const createGameCard = (game: Game) => {
   heartImage.src = heart;
   heartImage.alt = 'heart icon';
 
-  const info = document.createElement('div');
+  const info = document.createElement('span');
   info.className = 'carouselCardInfo';
 
-  const title = document.createElement('h3');
+  const title = document.createElement('span');
   title.className = 'carouselCardTitle';
   title.textContent = game.name;
 
-  const stats = document.createElement('div');
+  const stats = document.createElement('span');
   stats.className = 'carouselCardStats';
 
   const rating = document.createElement('span');
@@ -53,7 +53,8 @@ export const createGameCard = (game: Game) => {
 
   stats.append(rating, likes);
   info.append(title, stats);
-  card.append(image, info);
+  content.append(image, info);
+  card.append(content);
 
   return card;
 };

@@ -168,7 +168,6 @@
   display: none;
 }
 
-//Media
 @include middle {
   .leaderboardTable tbody tr:nth-last-child(-n + 2) {
     display: none;
