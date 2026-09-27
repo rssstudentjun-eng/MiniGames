@@ -7,7 +7,7 @@ export function createHeroSection(): HTMLElement {
   const heroSectionInfoBlock = document.createElement('div');
   heroSectionInfoBlock.classList.add('heroSectionInfoBlock');
 
-  const sectionHeroTitle = document.createElement('h2');
+  const sectionHeroTitle = document.createElement('h1');
   sectionHeroTitle.classList.add('sectionHeroTitle');
   sectionHeroTitle.textContent = 'Take a Short Break & Have Fun';
 

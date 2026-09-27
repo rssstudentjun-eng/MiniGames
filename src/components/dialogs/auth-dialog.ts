@@ -37,17 +37,19 @@ function createIcon(source: string): HTMLImageElement {
   return image;
 }
 
-function createField(options: FieldOptions): HTMLLabelElement {
-  const field = document.createElement('label');
+function createField(options: FieldOptions): HTMLDivElement {
+  const field = document.createElement('div');
   field.className = 'authField';
 
-  const labelText = document.createElement('span');
+  const labelText = document.createElement('label');
   labelText.textContent = options.label;
 
   const control = document.createElement('span');
   control.className = 'authControl';
 
   const input = document.createElement('input');
+  input.id = `auth-${options.name}`;
+  labelText.htmlFor = input.id;
 
   input.name = options.name;
   input.type = options.type;

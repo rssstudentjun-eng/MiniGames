@@ -1,0 +1,254 @@
+@use '../../../../styles/mixins' as *;
+
+.gameCard {
+  height: 200px;
+  display: flex;
+  border: 2.5px solid var(--on-primary);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 0 var(--on-primary);
+  background: var(--white);
+}
+
+.gameCardImage {
+  border-radius: 16px 0 0 16px;
+  width: 320px;
+  height: 200px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.gameCardInfoBlock {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px 10px 13px 13px;
+  min-width: 0;
+}
+
+.gameCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gameCardTitle {
+  color: var(--on-primary);
+  font-weight: var(--bold);
+  font-size: var(--display-small);
+  margin-right: 25px;
+}
+
+.gameCardCategoryGame {
+  background: var(--secondary);
+  font-weight: var(--bold);
+  font-size: var(--label-medium);
+  color: var(--on-primary);
+  border: 1.5px solid var(--on-primary);
+  border-radius: 24px;
+  padding: 4px 8px;
+  width: fit-content;
+  text-transform: capitalize;
+  margin-right: auto;
+}
+
+.gameCardDescription {
+  font-weight: var(--medium);
+  font-size: var(--body-medium);
+  color: var(--on-bg);
+  line-height: 140%;
+  text-align: start;
+  max-width: 484px;
+}
+
+.gameCardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detailsButton {
+  background: var(--primary);
+  font-weight: var(--bold);
+  font-size: var(--label-large);
+  color: var(--on-primary);
+  border: 2px solid var(--on-primary);
+  text-transform: capitalize;
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: background 0.2s ease-in-out;
+
+  &:hover {
+    background: var(--primary-high);
+  }
+}
+
+.statsInfoBlock {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+
+  > div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    font-weight: var(--bold);
+    font-size: var(--label-extra-large);
+    color: var(--on-primary);
+  }
+}
+
+.gameCardPrice {
+  font-weight: var(--bold);
+  font-size: var(--headline-medium);
+}
+
+.gameCardPriceString {
+  color: var(--price-free);
+}
+
+.gameCardPriceNumber {
+  color: var(--on-primary);
+}
+
+@include middle {
+  .gameCardTitle {
+    font-size: var(--headline-small);
+  }
+  .gameCardPrice {
+    font-size: var(--headline-small);
+  }
+  .gameCardDescription {
+    font-size: var(--body-small);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .detailsButton {
+    padding: 8px 16px;
+  }
+
+  .statsInfoBlock {
+    gap: 19px;
+
+    > div {
+      gap: 6px;
+      font-size: var(--label-medium);
+    }
+  }
+
+  .gameCardImage {
+    width: 270px;
+    height: 150px;
+  }
+
+  .gameCard {
+    height: 152px;
+  }
+  .gameCardInfoBlock {
+    padding: 15px 20px 13px 13px;
+  }
+}
+
+@include after-tablet {
+  .gameCardPrice {
+    display: none;
+  }
+
+  .gameCardTitle {
+    font-size: var(--headline-small);
+    margin: 0;
+  }
+
+  .gameCard {
+    flex-direction: column;
+    height: 100%;
+  }
+  .gameCardTop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .gameCardImage {
+    border-radius: 16px 16px 0 0;
+    height: 160px;
+    width: 100%;
+  }
+
+  .gameCardBottom {
+    flex-direction: column;
+  }
+
+  .gameCardCategoryGame {
+    padding: 1px 8px;
+  }
+
+  .subTitle {
+    margin-bottom: 28px;
+  }
+
+  .gameCardInfoBlock {
+    padding: 16px 14px 13px 15px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'title title'
+      'category category'
+      'description description'
+      'stats price'
+      'button button';
+    gap: 9px;
+  }
+
+  .gameCardTop,
+  .gameCardBottom {
+    display: contents;
+  }
+
+  .gameCardTitle {
+    grid-area: title;
+    margin: 0;
+  }
+
+  .gameCardCategoryGame {
+    grid-area: category;
+    margin-bottom: 8px;
+  }
+
+  .gameCardDescription {
+    grid-area: description;
+    margin-bottom: 8px;
+  }
+
+  .statsInfoBlock {
+    grid-area: stats;
+    align-self: center;
+    gap: 22px;
+
+    > div {
+      font-size: var(--label-medium);
+    }
+  }
+
+  .gameCardPrice {
+    grid-area: price;
+    display: block;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .detailsButton {
+    grid-area: button;
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+@include mobile {
+  .detailsButton {
+    padding: 10px 16px;
+  }
+}

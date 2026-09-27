@@ -7,6 +7,7 @@ export function createGameDevelopersSection(): HTMLElement {
   gameDevelopersSection.classList.add('gameDevelopersSection', 'container');
 
   const gameDevelopersSectionImage = document.createElement('img');
+  gameDevelopersSectionImage.alt = 'Game Developers Section Image';
   gameDevelopersSectionImage.classList.add('gameDevelopersSectionImage');
   gameDevelopersSectionImage.src = gameDevelopersImage;
 

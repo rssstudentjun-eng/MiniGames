@@ -1,0 +1,63 @@
+@use '../../styles/mixins' as *;
+
+.carouselTrack {
+  --center-width: calc((100% - 48px) * 34 / 68);
+  --side-width: calc((100% - 48px) * 12 / 68);
+  --edge-width: calc((100% - 48px) * 5 / 68);
+  --side-left: calc(50% - var(--center-width) / 2 - 8px - var(--side-width));
+  --side-right: calc(50% + var(--center-width) / 2 + 8px);
+}
+
+.carouselCard {
+  width: var(--edge-width);
+  left: calc(100% + 8px);
+  transition:
+    left 400ms ease,
+    width 400ms ease;
+
+  &[data-position='0'] {
+    width: var(--center-width);
+    left: calc(50% - var(--center-width) / 2);
+  }
+
+  &[data-position='-1'] {
+    width: var(--side-width);
+    left: var(--side-left);
+  }
+
+  &[data-position='1'] {
+    width: var(--side-width);
+    left: var(--side-right);
+  }
+
+  &[data-position='-2'] {
+    left: calc(var(--side-left) - 8px - var(--edge-width));
+  }
+
+  &[data-position='2'] {
+    left: calc(var(--side-right) + var(--side-width) + 8px);
+  }
+
+  &[data-position='-3'],
+  &[data-position='-4'] {
+    left: calc(-1 * var(--edge-width) - 8px);
+  }
+
+  &.isResetting {
+    transition: none;
+  }
+}
+
+@include tablet {
+  .carouselTrack {
+    --center-width: calc((100% - 32px) * 53 / 77);
+    --side-width: calc((100% - 32px) * 12 / 77);
+    --edge-width: var(--side-width);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carouselCard {
+    transition: none;
+  }
+}
