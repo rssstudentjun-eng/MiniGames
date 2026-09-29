@@ -2,10 +2,14 @@ import { createGamesFilter } from './games-filter/games-filter.ts';
 import './library-section.scss';
 import { createSortingElement } from './sorting/sorting.ts';
 import { createGameCardsWrapper } from './game-card-wrapper/game-card-wrapper.ts';
-import { gamesData } from './data/games.ts';
 import { createPagination } from './pagination/pagination.ts';
+import { GamesData } from './types/game.ts';
 
-export function createLibrarySection(): HTMLElement {
+export function createLibrarySection(gamesData: GamesData | 'loading' | 'error') {
+  const data = typeof gamesData === 'string' ? [] : gamesData.data;
+
+  console.log(data);
+
   const librarySection = document.createElement('section');
   librarySection.classList.add('librarySection', 'container');
 
@@ -30,9 +34,9 @@ export function createLibrarySection(): HTMLElement {
   librarySection.append(
     topSectionBlock,
     middleSection,
-    createGameCardsWrapper(gamesData),
+    createGameCardsWrapper(data),
     createPagination(),
   );
 
-  return librarySection;
+  return { element: librarySection };
 }
