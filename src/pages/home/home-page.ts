@@ -19,6 +19,12 @@ export function createHomePage() {
   );
 
   async function loadCarousel(): Promise<void> {
+    if (controller.signal.aborted) return;
+
+    destroyCarousel?.();
+    destroyCarousel = undefined;
+    carouselContainer.replaceChildren(createCarouselSection('loading').element);
+
     try {
       const gamesData = await getSliderGames(controller.signal);
 
@@ -31,7 +37,8 @@ export function createHomePage() {
     } catch (error) {
       if (controller.signal.aborted) return;
 
-      carouselContainer.textContent = "The games didn't load.";
+      const errorSection = createCarouselSection('error', () => void loadCarousel());
+      carouselContainer.replaceChildren(errorSection.element);
       console.error(error);
     }
   }
