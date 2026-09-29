@@ -2,11 +2,13 @@ import { createHeroSection } from '../../components/hero-section/hero-section.ts
 import { createCarouselSection } from '../../components/carousel-section/carousel-section.ts';
 import { createGameDevelopersSection } from '../../components/game-developers-section/game-developers-section.ts';
 import { createLeadBoardSection } from '../../components/leaderboard-table-section/leaderboard-table-section.ts';
-import { getSliderGames } from '../../services/api.ts';
+import { getLeaderBoard, getSliderGames } from '../../services/api.ts';
 
 export function createHomePage() {
   const page = document.createDocumentFragment();
   const carouselContainer = document.createElement('div');
+  const leaderBoardContainer = document.createElement('div');
+
   const controller = new AbortController();
 
   let destroyCarousel: (() => void) | undefined;
@@ -14,9 +16,27 @@ export function createHomePage() {
   page.append(
     createHeroSection(),
     carouselContainer,
-    createLeadBoardSection(),
+    leaderBoardContainer,
     createGameDevelopersSection(),
   );
+
+  async function loadLeaderBoard(): Promise<void> {
+    if (controller.signal.aborted) return;
+
+    leaderBoardContainer.replaceChildren(createLeadBoardSection('loading').element);
+
+    try {
+      const leaderBoardData = await getLeaderBoard(controller.signal);
+      if (controller.signal.aborted) return;
+      const leaderBoard = createLeadBoardSection(leaderBoardData);
+      leaderBoardContainer.replaceChildren(leaderBoard.element);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      const errorSection = createLeadBoardSection('error', () => void loadLeaderBoard());
+      leaderBoardContainer.replaceChildren(errorSection.element);
+      console.error(error);
+    }
+  }
 
   async function loadCarousel(): Promise<void> {
     if (controller.signal.aborted) return;
@@ -44,6 +64,7 @@ export function createHomePage() {
   }
 
   void loadCarousel();
+  void loadLeaderBoard();
 
   return {
     content: page,
