@@ -3,6 +3,7 @@ import star from '../../../assets/icons/starIcon.svg';
 import heart from '../../../assets/icons/heartIcon.svg';
 import type { GameType } from '../../library-section/types/game.ts';
 import { createGameDetailsDialog } from '../../dialogs/game-details-dialog';
+import { getGameImageUrl } from '../../../utils/game-image';
 
 export const createGameCard = (game: GameType) => {
   const card = document.createElement('li');
@@ -19,7 +20,16 @@ export const createGameCard = (game: GameType) => {
 
   const image = document.createElement('img');
   image.className = 'carouselCardImage';
-  image.src = game.cardImage;
+
+  const imageUrl = getGameImageUrl(game.cardImage);
+
+  if (imageUrl) {
+    image.src = imageUrl;
+  } else {
+    image.hidden = true;
+    console.warn('Image not found:', game.cardImage);
+  }
+
   image.alt = game.name;
   image.draggable = false;
 

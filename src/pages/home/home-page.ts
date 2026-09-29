@@ -2,18 +2,54 @@ import { createHeroSection } from '../../components/hero-section/hero-section.ts
 import { createCarouselSection } from '../../components/carousel-section/carousel-section.ts';
 import { createGameDevelopersSection } from '../../components/game-developers-section/game-developers-section.ts';
 import { createLeadBoardSection } from '../../components/leaderboard-table-section/leaderboard-table-section.ts';
-import { gamesData } from '../../components/library-section/data/games.ts';
+import { getSliderGames } from '../../services/api.ts';
 
 export function createHomePage() {
   const page = document.createDocumentFragment();
-  const carousel = createCarouselSection(gamesData);
+  const carouselContainer = document.createElement('div');
+  const controller = new AbortController();
+
+  let destroyCarousel: (() => void) | undefined;
 
   page.append(
     createHeroSection(),
-    carousel.element,
+    carouselContainer,
     createLeadBoardSection(),
     createGameDevelopersSection(),
   );
 
-  return { content: page, destroy: carousel.destroy };
+  async function loadCarousel(): Promise<void> {
+    if (controller.signal.aborted) return;
+
+    destroyCarousel?.();
+    destroyCarousel = undefined;
+    carouselContainer.replaceChildren(createCarouselSection('loading').element);
+
+    try {
+      const gamesData = await getSliderGames(controller.signal);
+
+      if (controller.signal.aborted) return;
+
+      const carousel = createCarouselSection(gamesData);
+
+      destroyCarousel = carousel.destroy;
+      carouselContainer.replaceChildren(carousel.element);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+
+      const errorSection = createCarouselSection('error', () => void loadCarousel());
+      carouselContainer.replaceChildren(errorSection.element);
+      console.error(error);
+    }
+  }
+
+  void loadCarousel();
+
+  return {
+    content: page,
+    destroy() {
+      controller.abort();
+      destroyCarousel?.();
+    },
+  };
 }
