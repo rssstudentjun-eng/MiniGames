@@ -1,13 +1,13 @@
 import { GamesData } from '../types/game.ts';
-import vacationCafeImage from '../../../assets/images/vacation-cafe-simulator-card.jpg';
-import winterBurrowImage from '../../../assets/images/winter-burrow-card.jpg';
-import shelveThePointsImage from '../../../assets/images/shelve-the-potions-card.jpg';
-import hearTopiaImage from '../../../assets/images/heartopia-card.jpg';
-import paliaImage from '../../../assets/images/palia-card.jpg';
-import catMailImage from '../../../assets/images/cat-mail-co-card.jpg';
-import tinyGladeImage from '../../../assets/images/tiny-glade-card.jpg';
-import tailSideCozyCafeSiImage from '../../../assets/images/tailside-cozy-cafe-sim-card.jpg';
-import islandersNewShoresImage from '../../../assets/images/islanders-new-shores-card.jpg';
+import vacationCafeImage from '../../../assets/images/games/vacation-cafe-simulator-card.jpg';
+import winterBurrowImage from '../../../assets/images/games/winter-burrow-card.jpg';
+import shelveThePointsImage from '../../../assets/images/games/shelve-the-potions-card.jpg';
+import hearTopiaImage from '../../../assets/images/games/heartopia-card.jpg';
+import paliaImage from '../../../assets/images/games/palia-card.jpg';
+import catMailImage from '../../../assets/images/games/cat-mail-co-card.jpg';
+import tinyGladeImage from '../../../assets/images/games/tiny-glade-card.jpg';
+import tailSideCozyCafeSiImage from '../../../assets/images/games/tailside-cozy-cafe-sim-card.jpg';
+import islandersNewShoresImage from '../../../assets/images/games/islanders-new-shores-card.jpg';
 
 export const gamesData: GamesData = {
   data: [

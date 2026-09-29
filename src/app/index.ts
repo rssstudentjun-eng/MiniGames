@@ -1,8 +1,8 @@
 import '../styles/globals.scss';
-import { createHeader } from '../components/header/header';
-import { createFooter } from '../components/footer/ footer.ts';
-import { createHomePage } from '../pages/home/home-page.ts';
-import { createLibraryPage } from '../pages/library/library-page.ts';
+import {createHeader} from '../components/header/header';
+import {createFooter} from '../components/footer/ footer.ts';
+import {createHomePage} from '../pages/home/home-page.ts';
+import {createLibraryPage} from '../pages/library/library-page.ts';
 
 export type Page = 'home' | 'library';
 
@@ -12,48 +12,48 @@ app.id = 'app';
 const pageState: { destroy?: () => void } = {};
 
 function renderPage(page: Page): void {
-  pageState.destroy?.();
-  pageState.destroy = undefined;
+    pageState.destroy?.();
+    pageState.destroy = undefined;
 
-  if (page === 'home') {
-    const homePage = createHomePage();
-    main.replaceChildren(homePage.content);
-    pageState.destroy = homePage.destroy;
-  } else {
-    main.replaceChildren(createLibraryPage());
-  }
-
-  for (const link of header.querySelectorAll<HTMLAnchorElement>('[data-page]')) {
-    const isActive = link.dataset.page === page;
-
-    link.classList.toggle('headerNavLinkActive', isActive);
-
-    link.toggleAttribute('aria-current', isActive);
-    if (isActive) {
-      link.setAttribute('aria-current', 'page');
+    if (page === 'home') {
+        const homePage = createHomePage();
+        main.replaceChildren(homePage.content);
+        pageState.destroy = homePage.destroy;
+    } else {
+        main.replaceChildren(createLibraryPage());
     }
-  }
+
+    for (const link of header.querySelectorAll<HTMLAnchorElement>('[data-page]')) {
+        const isActive = link.dataset.page === page;
+
+        link.classList.toggle('headerNavLinkActive', isActive);
+
+        link.toggleAttribute('aria-current', isActive);
+        if (isActive) {
+            link.setAttribute('aria-current', 'page');
+        }
+    }
 }
 
 app.addEventListener('click', (event) => {
-  if (!(event.target instanceof Element)) {
-    return;
-  }
-  const link = event.target.closest<HTMLAnchorElement>('a[data-page]');
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+    const link = event.target.closest<HTMLAnchorElement>('a[data-page]');
 
-  if (!link) {
-    return;
-  }
+    if (!link) {
+        return;
+    }
 
-  const page = link.dataset.page;
+    const page = link.dataset.page;
 
-  if (page !== 'home' && page !== 'library') {
-    return;
-  }
+    if (page !== 'home' && page !== 'library') {
+        return;
+    }
 
-  event.preventDefault();
-  renderPage(page);
-  window.scrollTo(0, 0);
+    event.preventDefault();
+    renderPage(page);
+    window.scrollTo(0, 0);
 });
 
 const header = createHeader();
@@ -63,3 +63,4 @@ const footer = createFooter();
 app.prepend(header, main, footer);
 renderPage('home');
 document.body.append(app);
+
