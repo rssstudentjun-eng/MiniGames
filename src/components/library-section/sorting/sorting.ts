@@ -1,14 +1,19 @@
 import './sorting.scss';
 import tickIcon from '../../../assets/icons/tickSelectIcon.svg';
 
-const sortingValues = [
-  { title: 'Rating  ↑' },
-  { title: 'Rating  ↓' },
-  { title: 'Name A → Z' },
-  { title: 'Name Z → A' },
-];
+export const sortingValues = [
+  { title: 'Rating  ↓', value: 'rating-desc' },
+  { title: 'Rating  ↑', value: 'rating-asc' },
+  { title: 'Name A → Z', value: 'name-asc' },
+  { title: 'Name Z → A', value: 'name-desc' },
+] as const;
 
-export function createSortingElement(): HTMLElement {
+export type SortingValue = (typeof sortingValues)[number];
+
+export function createSortingElement(
+  selectedSortValue: SortingValue = sortingValues[0],
+  changeSortValue: (value: SortingValue) => void,
+): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.classList.add('sortingWrapper');
 
@@ -20,7 +25,8 @@ export function createSortingElement(): HTMLElement {
   label.textContent = 'Sort by:';
 
   const currentValue = document.createElement('span');
-  currentValue.textContent = 'Rating  ↓';
+
+  currentValue.textContent = selectedSortValue.title;
 
   sortingButton.append(label, currentValue);
 
@@ -33,6 +39,7 @@ export function createSortingElement(): HTMLElement {
     const optionButton = document.createElement('button');
     optionButton.type = 'button';
     optionButton.classList.add('sortingOption');
+
     optionButton.textContent = sortValue.title;
     const img = document.createElement('img');
     img.src = tickIcon;
@@ -45,7 +52,6 @@ export function createSortingElement(): HTMLElement {
 
     optionButton.addEventListener('click', () => {
       currentValue.textContent = sortValue.title;
-
       const options = sortingList.querySelectorAll('.sortingOption');
 
       for (const option of options) {
@@ -56,6 +62,7 @@ export function createSortingElement(): HTMLElement {
       optionButton.classList.add('active');
       optionButton.prepend(img);
       sortingList.classList.remove('open');
+      changeSortValue(sortValue);
     });
 
     item.append(optionButton);
