@@ -16,12 +16,14 @@ function createArrow(label: string, className: string) {
   return button;
 }
 
-export function createPagination(totalPages = 8): HTMLElement {
+export function createPagination(
+  currentPage: number,
+  changePaginationPage: (newPage: number) => void,
+  totalPages: number,
+): HTMLElement {
   if (!Number.isSafeInteger(totalPages) || totalPages < 1) {
     throw new RangeError('totalPages must be a positive integer');
   }
-
-  let currentPage = 1;
 
   const mobileQuery = globalThis.matchMedia('(max-width: 760px)');
 
@@ -39,9 +41,7 @@ export function createPagination(totalPages = 8): HTMLElement {
     if (page === currentPage || page < 1 || page > totalPages) {
       return;
     }
-
-    currentPage = page;
-    render();
+    changePaginationPage(page);
   }
 
   function render() {

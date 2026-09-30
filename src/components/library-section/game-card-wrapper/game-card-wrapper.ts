@@ -27,7 +27,7 @@ export function createGameCardsWrapper(
     const text = document.createElement('p');
     text.setAttribute('role', gamesData === 'error' ? 'alert' : 'status');
     text.textContent =
-      gamesData === 'error' ? "The games didn't load. Please try again." : 'No games yet.';
+      gamesData === 'error' ? "The games didn't load. Please try again." : 'No data';
     message.append(text);
 
     if (gamesData === 'error') {
@@ -47,9 +47,7 @@ export function createGameCardsWrapper(
     return gameCardsWrapper;
   }
 
-  const slicedContent = gamesData.slice(0, 6);
-
-  for (const gameCard of slicedContent) {
+  for (const gameCard of gamesData) {
     gameCardsWrapper.append(createGameCard(gameCard));
   }
 

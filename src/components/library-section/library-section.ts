@@ -1,12 +1,18 @@
-import { createGamesFilter } from './games-filter/games-filter.ts';
 import './library-section.scss';
-import { createSortingElement } from './sorting/sorting.ts';
+import { createGamesFilter } from './games-filter/games-filter.ts';
+import type { GameCategory } from './games-filter/games-filter.ts';
+import { createSortingElement, SortingValue, sortingValues } from './sorting/sorting.ts';
 import { createGameCardsWrapper } from './game-card-wrapper/game-card-wrapper.ts';
 import { createPagination } from './pagination/pagination.ts';
 import { GamesData } from './types/game.ts';
 
 export function createLibrarySection(
   gamesData: GamesData | 'loading' | 'error',
+  changeCategory: (category: GameCategory) => void,
+  changeSortValue: (sortValue: SortingValue) => void,
+  selectedCategory: GameCategory = 'all',
+  sortValue: SortingValue = sortingValues[0],
+  changePaginationPage: (newPage: number) => void,
   onRetry?: () => void,
 ) {
   const data = typeof gamesData === 'string' ? gamesData : gamesData.data;
@@ -30,14 +36,19 @@ export function createLibrarySection(
   const middleSection = document.createElement('div');
   middleSection.classList.add('middleSection');
 
-  middleSection.append(createGamesFilter(), createSortingElement());
-
-  librarySection.append(
-    topSectionBlock,
-    middleSection,
-    createGameCardsWrapper(data, onRetry),
-    createPagination(),
+  middleSection.append(
+    createGamesFilter(changeCategory, selectedCategory),
+    createSortingElement(sortValue, changeSortValue),
   );
+
+  librarySection.append(topSectionBlock, middleSection, createGameCardsWrapper(data, onRetry));
+
+  if (typeof gamesData !== 'string') {
+    const isEmpty = gamesData.data.length === 0;
+    const currentPage = isEmpty ? 1 : gamesData.meta.page;
+    const totalPages = isEmpty ? 1 : Math.max(1, gamesData.meta.totalPages);
+    librarySection.append(createPagination(currentPage, changePaginationPage, totalPages));
+  }
 
   return { element: librarySection };
 }
