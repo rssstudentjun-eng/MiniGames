@@ -20,3 +20,39 @@ export async function getLeaderBoard(signal?: AbortSignal): Promise<TopPlayersRe
   }
   return response.json();
 }
+
+type GamesParameters = {
+  featured?: 'true' | 'false';
+  page?: string;
+  limit?: string;
+  category?: 'all' | 'puzzle' | 'card' | 'match' | 'farm' | 'strategy' | 'arcade';
+  sort?: 'rating-desc' | 'rating-asc' | 'name-asc' | 'name-desc';
+};
+
+export async function getGamesUniversal(
+  signal?: AbortSignal,
+  {
+    featured = 'false',
+    page = '1',
+    limit = '6',
+    category = 'all',
+    sort = 'rating-desc',
+  }: GamesParameters = {},
+): Promise<GamesData> {
+  const searchParameters = new URLSearchParams();
+
+  if (featured === 'true') searchParameters.set('featured', 'true');
+  else {
+    searchParameters.set('page', String(page));
+    searchParameters.set('limit', String(limit));
+    searchParameters.set('category', category);
+    searchParameters.set('sort', sort);
+  }
+
+  const response = await fetch(`${baseUrl}games?${searchParameters}`, { signal });
+
+  if (!response.ok) {
+    throw new Error(`error HTTP: ${response.status}`);
+  }
+  return response.json();
+}
