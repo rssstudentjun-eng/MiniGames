@@ -5,10 +5,11 @@ import { createGameCardsWrapper } from './game-card-wrapper/game-card-wrapper.ts
 import { createPagination } from './pagination/pagination.ts';
 import { GamesData } from './types/game.ts';
 
-export function createLibrarySection(gamesData: GamesData | 'loading' | 'error') {
-  const data = typeof gamesData === 'string' ? [] : gamesData.data;
-
-  console.log(data);
+export function createLibrarySection(
+  gamesData: GamesData | 'loading' | 'error',
+  onRetry?: () => void,
+) {
+  const data = typeof gamesData === 'string' ? gamesData : gamesData.data;
 
   const librarySection = document.createElement('section');
   librarySection.classList.add('librarySection', 'container');
@@ -34,7 +35,7 @@ export function createLibrarySection(gamesData: GamesData | 'loading' | 'error')
   librarySection.append(
     topSectionBlock,
     middleSection,
-    createGameCardsWrapper(data),
+    createGameCardsWrapper(data, onRetry),
     createPagination(),
   );
 

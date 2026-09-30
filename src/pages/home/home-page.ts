@@ -30,11 +30,10 @@ export function createHomePage() {
       if (controller.signal.aborted) return;
       const leaderBoard = createLeadBoardSection(leaderBoardData);
       leaderBoardContainer.replaceChildren(leaderBoard.element);
-    } catch (error) {
+    } catch {
       if (controller.signal.aborted) return;
       const errorSection = createLeadBoardSection('error', () => void loadLeaderBoard());
       leaderBoardContainer.replaceChildren(errorSection.element);
-      console.error(error);
     }
   }
 
@@ -54,12 +53,10 @@ export function createHomePage() {
 
       destroyCarousel = carousel.destroy;
       carouselContainer.replaceChildren(carousel.element);
-    } catch (error) {
+    } catch {
       if (controller.signal.aborted) return;
-
       const errorSection = createCarouselSection('error', () => void loadCarousel());
       carouselContainer.replaceChildren(errorSection.element);
-      console.error(error);
     }
   }
 

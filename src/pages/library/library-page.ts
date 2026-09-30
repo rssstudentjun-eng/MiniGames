@@ -18,9 +18,10 @@ export function createLibraryPage() {
       if (controller.signal.aborted) return;
       const libraryGames = createLibrarySection(librarySectionData);
       librarySectionContainer.replaceChildren(libraryGames.element);
-    } catch (error) {
+    } catch {
       if (controller.signal.aborted) return;
-      console.error(error);
+      const errorSection = createLibrarySection('error', () => void loadGames());
+      librarySectionContainer.replaceChildren(errorSection.element);
     }
   }
 

@@ -20,7 +20,6 @@ export function createGameCard(game: GameType) {
     gameCardImage.src = imageUrl;
   } else {
     gameCardImage.hidden = true;
-    console.warn('Image not found:', game.cardImage);
   }
   // =====
 
