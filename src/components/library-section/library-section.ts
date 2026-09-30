@@ -1,4 +1,5 @@
 import { createGamesFilter } from './games-filter/games-filter.ts';
+import type { GameCategory } from './games-filter/games-filter.ts';
 import './library-section.scss';
 import { createSortingElement } from './sorting/sorting.ts';
 import { createGameCardsWrapper } from './game-card-wrapper/game-card-wrapper.ts';
@@ -7,7 +8,9 @@ import { GamesData } from './types/game.ts';
 
 export function createLibrarySection(
   gamesData: GamesData | 'loading' | 'error',
+  changeCategory: (category: GameCategory) => void,
   onRetry?: () => void,
+  selectedCategory: GameCategory = 'all',
 ) {
   const data = typeof gamesData === 'string' ? gamesData : gamesData.data;
 
@@ -30,7 +33,7 @@ export function createLibrarySection(
   const middleSection = document.createElement('div');
   middleSection.classList.add('middleSection');
 
-  middleSection.append(createGamesFilter(), createSortingElement());
+  middleSection.append(createGamesFilter(changeCategory, selectedCategory), createSortingElement());
 
   librarySection.append(
     topSectionBlock,
