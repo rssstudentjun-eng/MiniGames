@@ -8,15 +8,23 @@ export function createLibraryPage() {
   const librarySectionContainer = document.createElement('div');
   let category: GameCategory = 'all';
   let sortValue: SortingValue = sortingValues[0];
+  let currentPage: number = 1;
   let controller: AbortController | undefined;
 
   function changeCategory(nextCategory: GameCategory): void {
     category = nextCategory;
+    currentPage = 1;
     void loadGames();
   }
 
   function changeSortValue(nextSortValue: SortingValue): void {
     sortValue = nextSortValue;
+    currentPage = 1;
+    void loadGames();
+  }
+
+  function changePaginationPage(newPage: number): void {
+    currentPage = newPage;
     void loadGames();
   }
 
@@ -32,6 +40,7 @@ export function createLibraryPage() {
         changeSortValue,
         category,
         sortValue,
+        changePaginationPage,
         () => void loadGames(),
       ).element,
     );
@@ -39,10 +48,12 @@ export function createLibraryPage() {
     try {
       const games = await getGamesUniversal(requestController.signal, {
         category,
-        page: '1',
+        page: String(currentPage),
+        limit: '6',
         sort: sortValue.value,
       });
       if (requestController.signal.aborted) return;
+      currentPage = games.data.length === 0 ? 1 : games.meta.page;
       librarySectionContainer.replaceChildren(
         createLibrarySection(
           games,
@@ -50,6 +61,7 @@ export function createLibraryPage() {
           changeSortValue,
           category,
           sortValue,
+          changePaginationPage,
           () => void loadGames(),
         ).element,
       );
@@ -62,6 +74,7 @@ export function createLibraryPage() {
           changeSortValue,
           category,
           sortValue,
+          changePaginationPage,
           () => void loadGames(),
         ).element,
       );

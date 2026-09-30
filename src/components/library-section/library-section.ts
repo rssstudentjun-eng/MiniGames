@@ -12,6 +12,7 @@ export function createLibrarySection(
   changeSortValue: (sortValue: SortingValue) => void,
   selectedCategory: GameCategory = 'all',
   sortValue: SortingValue = sortingValues[0],
+  changePaginationPage: (newPage: number) => void,
   onRetry?: () => void,
 ) {
   const data = typeof gamesData === 'string' ? gamesData : gamesData.data;
@@ -40,12 +41,14 @@ export function createLibrarySection(
     createSortingElement(sortValue, changeSortValue),
   );
 
-  librarySection.append(
-    topSectionBlock,
-    middleSection,
-    createGameCardsWrapper(data, onRetry),
-    createPagination(),
-  );
+  librarySection.append(topSectionBlock, middleSection, createGameCardsWrapper(data, onRetry));
+
+  if (typeof gamesData !== 'string') {
+    const isEmpty = gamesData.data.length === 0;
+    const currentPage = isEmpty ? 1 : gamesData.meta.page;
+    const totalPages = isEmpty ? 1 : Math.max(1, gamesData.meta.totalPages);
+    librarySection.append(createPagination(currentPage, changePaginationPage, totalPages));
+  }
 
   return { element: librarySection };
 }
