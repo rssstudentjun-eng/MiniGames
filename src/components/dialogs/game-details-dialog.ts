@@ -2,16 +2,74 @@ import './game-details-dialog.scss';
 import starIcon from '../../assets/icons/starIcon.svg';
 import heartIcon from '../../assets/icons/heartIcon.svg';
 import grayHeartIcon from '../../assets/icons/grayHeartIcon.svg';
-import { temporaryData } from './game-details-data-temporary.ts';
-import dialogMainImage from '../../../src/assets/images/tukoni-forest-keepers-hero.jpg';
 import sendCommentIcon from '../../assets/icons/sendCommentIcon.svg';
 import closeIcon from '../../assets/icons/closeIcon.svg';
 import cupImageIcon from '../../assets/images/cup.png';
 import medal_1 from '../../assets/images/medal_1.png';
 import medal_2 from '../../assets/images/medal_2.png';
 import medal_3 from '../../assets/images/medal_3.png';
+import { getGameComments, getGameDetails } from '../../services/api.ts';
+import { getGameImageUrl } from '../../utils/game-image.ts';
+import { formatCommentTime } from '../../utils/format-comment-time.ts';
+import { GameType } from '../library-section/types/game.ts';
 
 const medals = [medal_1, medal_2, medal_3];
+// =====
+const requestState: { controller?: AbortController } = {};
+
+export interface GameSpecs {
+  genre: string;
+  players: string;
+  duration: string;
+  price: string;
+}
+
+export interface GameTopRecord {
+  position: number;
+  playerName: string;
+  score: number;
+  achievedAt: string;
+}
+
+export interface GameDetails {
+  slug: string;
+  name: string;
+  heroImage: string;
+  rating: number;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
+  fullDescription: string;
+  specs: GameSpecs;
+  topRecords: GameTopRecord[];
+}
+
+export interface GameDetailsResponse {
+  data: GameDetails;
+}
+
+// ----------------
+export interface GameComment {
+  commentId: string;
+  authorName: string;
+  text: string;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
+  createdAt: string;
+}
+
+export interface GameCommentsMeta {
+  totalComments: number;
+  returnedCount: number;
+  sort?: string;
+  additionalProp1?: Record<string, unknown>;
+}
+
+export interface GameCommentsResponse {
+  data: GameComment[];
+  meta: GameCommentsMeta;
+}
+
+// =====
 
 export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   if (!gameDetailsDialog.open || gameDetailsDialog.classList.contains('isClosing')) {
@@ -26,8 +84,31 @@ export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   gameDetailsDialog.classList.add('isClosing');
 }
 
-export function createGameDetailsDialog() {
-  const { comments, gameData } = temporaryData;
+interface GameDialogData {
+  gameData: GameDetails;
+  comments: GameComment[];
+  totalComments: number;
+}
+
+export async function fetchGameDetails(slug: string): Promise<GameDialogData | undefined> {
+  requestState.controller?.abort();
+  const requestController = new AbortController();
+  requestState.controller = requestController;
+
+  const [{ data: gameData }, { data: comments, meta }] = await Promise.all([
+    getGameDetails(slug, requestController.signal),
+    getGameComments(slug, requestController.signal),
+  ]);
+
+  if (requestController.signal.aborted) return;
+
+  return { gameData, comments, totalComments: meta.totalComments };
+}
+
+export async function createGameDetailsDialog(game: GameType) {
+  const result = await fetchGameDetails(game.slug);
+  if (!result) return;
+  const { gameData, comments, totalComments } = result;
 
   const gameDetailsDialog = document.createElement('dialog');
   gameDetailsDialog.classList.add('gameDetailsDialog');
@@ -47,7 +128,15 @@ export function createGameDetailsDialog() {
   const cardImage = document.createElement('img');
   cardImage.classList.add('cardImage');
   cardImage.alt = 'Game Image';
-  cardImage.src = dialogMainImage;
+
+  const imageUrl = getGameImageUrl(game.cardImage);
+
+  if (imageUrl) {
+    cardImage.src = imageUrl;
+  } else {
+    cardImage.hidden = true;
+    console.warn('Image not found:', game.cardImage);
+  }
 
   const titleBlock = document.createElement('div');
   titleBlock.classList.add('titleBlock');
@@ -59,7 +148,7 @@ export function createGameDetailsDialog() {
   const ratingBlockImg = document.createElement('img');
   ratingBlockImg.alt = 'Rating';
   ratingBlockImg.src = starIcon;
-  ratingBlock.textContent = String(gameData.rating);
+  ratingBlock.textContent = String(gameData?.rating);
   ratingBlock.prepend(ratingBlockImg);
 
   const likesBlock = document.createElement('div');
@@ -67,14 +156,14 @@ export function createGameDetailsDialog() {
   const likesBlockImg = document.createElement('img');
   likesBlockImg.alt = 'Likes';
   likesBlockImg.src = heartIcon;
-  likesBlock.textContent = `${gameData.likesCount / 100 / 10}K`;
+  likesBlock.textContent = `${gameData?.likesCount / 100 / 10}K`;
   likesBlock.prepend(likesBlockImg);
 
   statsInfoBlock.append(ratingBlock, likesBlock);
 
   const dialogTitle = document.createElement('h2');
   dialogTitle.classList.add('dialogTitle');
-  dialogTitle.textContent = gameData.name;
+  dialogTitle.textContent = gameData?.name;
   dialogTitle.id = 'game-details-title';
   gameDetailsDialog.setAttribute('aria-labelledby', dialogTitle.id);
 
@@ -82,12 +171,14 @@ export function createGameDetailsDialog() {
 
   const dialogDescription = document.createElement('p');
   dialogDescription.classList.add('dialogDescription');
-  dialogDescription.textContent = gameData.fullDescription;
+  dialogDescription.textContent = gameData?.fullDescription;
 
   const gameInfoWrapper = document.createElement('div');
   gameInfoWrapper.classList.add('gameInfoWrapper');
 
-  for (const [key, value] of Object.entries(gameData.specs)) {
+  const specsEntries = Object.entries(gameData.specs);
+
+  for (const [key, value] of specsEntries) {
     const item = document.createElement('div');
     item.classList.add('gameInfoItem');
 
@@ -114,7 +205,9 @@ export function createGameDetailsDialog() {
   topRecordsTitle.prepend(cupImage);
   topRecordsBlock.append(topRecordsTitle);
 
-  for (const value of gameData.topRecords) {
+  const topRecords = gameData.topRecords;
+
+  for (const value of topRecords) {
     const item = document.createElement('div');
     item.classList.add('gameRecordsItem');
 
@@ -148,12 +241,13 @@ export function createGameDetailsDialog() {
     item.append(name, score, daysCounter);
     topRecordsBlock.append(item);
   }
-
+  // ====
   const commentsBlock = document.createElement('div');
   commentsBlock.classList.add('commentsBlock');
+
   const commentsBlockTitle = document.createElement('h3');
   commentsBlockTitle.classList.add('commentsBlockTitle');
-  commentsBlockTitle.textContent = `Comments (${comments.length})`;
+  commentsBlockTitle.textContent = `Comments (${totalComments})`;
 
   const commentInputBlock = document.createElement('div');
   commentInputBlock.classList.add('commentInputBlock');
@@ -198,12 +292,10 @@ export function createGameDetailsDialog() {
       commentAuthorFirstLetter.classList.add('thirdComment');
     }
 
-    const daysCounter = document.createElement('p');
+    const daysCounter = document.createElement('time');
     daysCounter.classList.add('daysCounter');
-    const millisecondsPerDay = 1000 * 60 * 60 * 24;
-    const difference = Date.now() - new Date(comment.createdAt).getTime();
-    const daysAgo = Math.floor(difference / millisecondsPerDay);
-    daysCounter.textContent = `${daysAgo} days ago`;
+    daysCounter.dateTime = comment.createdAt;
+    daysCounter.textContent = formatCommentTime(comment.createdAt);
 
     commentTop.append(commentAuthorFirstLetter, commentAuthor, daysCounter);
 
@@ -225,6 +317,13 @@ export function createGameDetailsDialog() {
 
   commentsBlock.append(commentsBlockTitle, commentInputBlock, commentsList);
 
+  if (comments.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.classList.add('emptyMessage');
+    emptyMessage.textContent = 'Comments list is empty';
+    commentsBlock.append(emptyMessage);
+  }
+  // ====
   const dialogButtonsWrapper = document.createElement('div');
   dialogButtonsWrapper.classList.add('dialogButtonsWrapper');
 
