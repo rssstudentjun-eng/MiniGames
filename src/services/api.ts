@@ -1,9 +1,9 @@
 import type { GamesData } from '../components/library-section/types/game.ts';
 import type { TopPlayersResponse } from '../components/leaderboard-table-section/leaderboard-table-section.ts';
-import type {
+import {
   GameCommentsResponse,
   GameDetailsResponse,
-} from '../components/dialogs/game-details-dialog.ts';
+} from '../components/dialogs/types/dialog-types.ts';
 
 export const baseUrl = 'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com/api/';
 
@@ -61,7 +61,6 @@ export async function getGamesUniversal(
   return response.json();
 }
 
-// ====
 export async function getGameDetails(
   slug: string,
   signal?: AbortSignal,
@@ -89,5 +88,3 @@ export async function getGameComments(
   }
   return response.json();
 }
-
-// =====

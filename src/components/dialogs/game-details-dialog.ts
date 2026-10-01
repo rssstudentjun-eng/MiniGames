@@ -12,64 +12,9 @@ import { getGameComments, getGameDetails } from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
 import { formatCommentTime } from '../../utils/format-comment-time.ts';
 import { GameType } from '../library-section/types/game.ts';
+import { GameComment, GameDetails } from './types/dialog-types.ts';
 
 const medals = [medal_1, medal_2, medal_3];
-// =====
-const requestState: { controller?: AbortController } = {};
-
-export interface GameSpecs {
-  genre: string;
-  players: string;
-  duration: string;
-  price: string;
-}
-
-export interface GameTopRecord {
-  position: number;
-  playerName: string;
-  score: number;
-  achievedAt: string;
-}
-
-export interface GameDetails {
-  slug: string;
-  name: string;
-  heroImage: string;
-  rating: number;
-  likesCount: number;
-  isLikedByCurrentUser: boolean;
-  fullDescription: string;
-  specs: GameSpecs;
-  topRecords: GameTopRecord[];
-}
-
-export interface GameDetailsResponse {
-  data: GameDetails;
-}
-
-// ----------------
-export interface GameComment {
-  commentId: string;
-  authorName: string;
-  text: string;
-  likesCount: number;
-  isLikedByCurrentUser: boolean;
-  createdAt: string;
-}
-
-export interface GameCommentsMeta {
-  totalComments: number;
-  returnedCount: number;
-  sort?: string;
-  additionalProp1?: Record<string, unknown>;
-}
-
-export interface GameCommentsResponse {
-  data: GameComment[];
-  meta: GameCommentsMeta;
-}
-
-// =====
 
 export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   if (!gameDetailsDialog.open || gameDetailsDialog.classList.contains('isClosing')) {
@@ -90,40 +35,38 @@ interface GameDialogData {
   totalComments: number;
 }
 
-export async function fetchGameDetails(slug: string): Promise<GameDialogData | undefined> {
-  requestState.controller?.abort();
-  const requestController = new AbortController();
-  requestState.controller = requestController;
-
+export async function fetchGameDetails(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<GameDialogData | undefined> {
   const [{ data: gameData }, { data: comments, meta }] = await Promise.all([
-    getGameDetails(slug, requestController.signal),
-    getGameComments(slug, requestController.signal),
+    getGameDetails(slug, signal),
+    getGameComments(slug, signal),
   ]);
 
-  if (requestController.signal.aborted) return;
+  if (signal?.aborted) return;
+
+  if (
+    !gameData ||
+    !meta ||
+    !gameData.name ||
+    !gameData.fullDescription ||
+    !gameData.specs ||
+    !Array.isArray(gameData.topRecords) ||
+    !Array.isArray(comments) ||
+    !Number.isFinite(meta.totalComments)
+  ) {
+    throw new Error('Game details are unavailable');
+  }
 
   return { gameData, comments, totalComments: meta.totalComments };
 }
 
-export async function createGameDetailsDialog(game: GameType) {
-  const result = await fetchGameDetails(game.slug);
-  if (!result) return;
+function createGameDetailsContent(game: GameType, result: GameDialogData) {
   const { gameData, comments, totalComments } = result;
-
-  const gameDetailsDialog = document.createElement('dialog');
-  gameDetailsDialog.classList.add('gameDetailsDialog');
 
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('gameDetailsDialogContent');
-
-  const closeButton = document.createElement('button');
-  const closeButtonImage = document.createElement('img');
-  closeButtonImage.alt = 'Close Icon';
-  closeButtonImage.classList.add('closeButtonImage');
-  closeButtonImage.src = closeIcon;
-  closeButton.append(closeButtonImage);
-  closeButton.type = 'button';
-  closeButton.classList.add('gameDetailsDialogClose');
 
   const cardImage = document.createElement('img');
   cardImage.classList.add('cardImage');
@@ -165,7 +108,6 @@ export async function createGameDetailsDialog(game: GameType) {
   dialogTitle.classList.add('dialogTitle');
   dialogTitle.textContent = gameData?.name;
   dialogTitle.id = 'game-details-title';
-  gameDetailsDialog.setAttribute('aria-labelledby', dialogTitle.id);
 
   titleBlock.append(dialogTitle, statsInfoBlock);
 
@@ -361,20 +303,86 @@ export async function createGameDetailsDialog(game: GameType) {
     commentsBlock,
   );
 
-  dialogContent.append(closeButton, cardImage, gameInfoBlock);
+  dialogContent.append(cardImage, gameInfoBlock);
 
-  gameDetailsDialog.append(dialogContent);
+  return dialogContent;
+}
+
+export function createGameDetailsDialog(game: GameType): HTMLDialogElement {
+  const gameDetailsDialog = document.createElement('dialog');
+  gameDetailsDialog.classList.add('gameDetailsDialog');
+  gameDetailsDialog.setAttribute('aria-label', `Game details: ${game.name}`);
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.classList.add('gameDetailsDialogClose');
+  closeButton.setAttribute('aria-label', 'Close game details');
+  const closeImage = document.createElement('img');
+  closeImage.src = closeIcon;
+  closeImage.alt = '';
+  closeImage.classList.add('closeButtonImage');
+  closeButton.append(closeImage);
+
+  const content = document.createElement('div');
+  gameDetailsDialog.append(closeButton, content);
+  const requestState: { controller?: AbortController } = {};
+
+  async function loadContent() {
+    requestState.controller?.abort();
+    const controller = new AbortController();
+    requestState.controller = controller;
+    gameDetailsDialog.setAttribute('aria-busy', 'true');
+    content.replaceChildren(createGameDetailsSkeleton());
+
+    try {
+      const result = await fetchGameDetails(game.slug, controller.signal);
+      if (!result || controller.signal.aborted) return;
+      content.replaceChildren(createGameDetailsContent(game, result));
+      gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      controller.abort();
+      console.error('Error fetching game details:', error);
+      const errorBlock = document.createElement('div');
+      errorBlock.classList.add('gameDetailsError');
+      errorBlock.setAttribute('role', 'alert');
+      const title = document.createElement('h2');
+      title.textContent = 'No data available';
+      const message = document.createElement('p');
+      message.textContent = 'Please check your connection and try again.';
+      const retryButton = document.createElement('button');
+      retryButton.type = 'button';
+      retryButton.classList.add('playButton');
+      retryButton.textContent = 'Try again';
+      retryButton.addEventListener('click', () => {
+        void loadContent();
+      });
+      errorBlock.append(title, message, retryButton);
+      content.replaceChildren(errorBlock);
+    } finally {
+      if (requestState.controller === controller) {
+        gameDetailsDialog.setAttribute('aria-busy', 'false');
+      }
+    }
+  }
 
   gameDetailsDialog.addEventListener('click', (event) => {
-    if (event.target === gameDetailsDialog) {
+    const target = event.target;
+    if (
+      target === gameDetailsDialog ||
+      (target instanceof Element && target.closest('.gameDetailsDialogClose'))
+    ) {
+      requestState.controller?.abort();
       closeDialog(gameDetailsDialog);
     }
   });
   gameDetailsDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
+    requestState.controller?.abort();
     closeDialog(gameDetailsDialog);
   });
   gameDetailsDialog.addEventListener('close', () => {
+    requestState.controller?.abort();
     gameDetailsDialog.remove();
   });
 
@@ -384,9 +392,21 @@ export async function createGameDetailsDialog(game: GameType) {
     }
   });
 
-  closeButton.addEventListener('click', () => {
-    closeDialog(gameDetailsDialog);
-  });
-
+  void loadContent();
   return gameDetailsDialog;
+}
+
+function createGameDetailsSkeleton(): HTMLElement {
+  const skeleton = document.createElement('div');
+  skeleton.classList.add('gameDetailsSkeleton');
+  skeleton.setAttribute('role', 'status');
+  skeleton.setAttribute('aria-label', 'Loading game details');
+  const blocks = ['hero', 'title', 'text', 'text', 'specs', 'records', 'records', 'comments'];
+  for (const block of blocks) {
+    const placeholder = document.createElement('div');
+    placeholder.classList.add('gameDetailsSkeletonBlock', `gameDetailsSkeleton-${block}`);
+    placeholder.setAttribute('aria-hidden', 'true');
+    skeleton.append(placeholder);
+  }
+  return skeleton;
 }

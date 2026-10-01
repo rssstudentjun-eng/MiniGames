@@ -13,19 +13,10 @@ export const createGameCard = (game: GameType) => {
   content.className = 'carouselCardContent';
   content.setAttribute('aria-label', `View details: ${game.name}`);
 
-  content.addEventListener('click', async () => {
-    try {
-      const dialog = await createGameDetailsDialog(game);
-
-      if (!dialog) return;
-
-      document.body.append(dialog);
-      dialog.showModal();
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') return;
-
-      console.error('Error fetching game details:', error);
-    }
+  content.addEventListener('click', () => {
+    const dialog = createGameDetailsDialog(game);
+    document.body.append(dialog);
+    dialog.showModal();
   });
 
   const image = document.createElement('img');

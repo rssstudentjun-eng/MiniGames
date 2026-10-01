@@ -57,18 +57,10 @@ export function createGameCard(game: GameType) {
   detailsButton.classList.add('detailsButton');
   detailsButton.textContent = 'Details';
 
-  detailsButton.addEventListener('click', async () => {
-    try {
-      const gameDetailsDialog = await createGameDetailsDialog(game);
-
-      if (!gameDetailsDialog) return;
-
-      document.body.append(gameDetailsDialog);
-      gameDetailsDialog.showModal();
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') return;
-      console.error('Error fetching game details:', error);
-    }
+  detailsButton.addEventListener('click', () => {
+    const gameDetailsDialog = createGameDetailsDialog(game);
+    document.body.append(gameDetailsDialog);
+    gameDetailsDialog.showModal();
   });
 
   const statsInfoBlock = document.createElement('div');
