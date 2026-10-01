@@ -1,5 +1,9 @@
 import type { GamesData } from '../components/library-section/types/game.ts';
 import type { TopPlayersResponse } from '../components/leaderboard-table-section/leaderboard-table-section.ts';
+import {
+  GameCommentsResponse,
+  GameDetailsResponse,
+} from '../components/dialogs/types/dialog-types.ts';
 
 export const baseUrl = 'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com/api/';
 
@@ -50,6 +54,34 @@ export async function getGamesUniversal(
   }
 
   const response = await fetch(`${baseUrl}games?${searchParameters}`, { signal });
+
+  if (!response.ok) {
+    throw new Error(`error HTTP: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function getGameDetails(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<GameDetailsResponse> {
+  const response = await fetch(`${baseUrl}games/${slug}`, { signal });
+
+  if (!response.ok) {
+    throw new Error(`error HTTP: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function getGameComments(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<GameCommentsResponse> {
+  const parameters = new URLSearchParams({ limit: '3', sort: 'newest' });
+  const response = await fetch(
+    `${baseUrl}games/${encodeURIComponent(slug)}/comments?${parameters}`,
+    { signal },
+  );
 
   if (!response.ok) {
     throw new Error(`error HTTP: ${response.status}`);

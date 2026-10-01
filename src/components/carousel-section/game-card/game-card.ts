@@ -12,8 +12,9 @@ export const createGameCard = (game: GameType) => {
   content.type = 'button';
   content.className = 'carouselCardContent';
   content.setAttribute('aria-label', `View details: ${game.name}`);
+
   content.addEventListener('click', () => {
-    const dialog = createGameDetailsDialog();
+    const dialog = createGameDetailsDialog(game);
     document.body.append(dialog);
     dialog.showModal();
   });

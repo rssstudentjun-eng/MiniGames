@@ -1,7 +1,7 @@
+import './game-card.scss';
 import heartIcon from '../../../../assets/icons/heartIcon.svg';
 import starIcon from '../../../../assets/icons/starIcon.svg';
 import { GameType } from '../../types/game.ts';
-import './game-card.scss';
 import { createGameDetailsDialog } from '../../../dialogs/game-details-dialog.ts';
 import { getGameImageUrl } from '../../../../utils/game-image.ts';
 
@@ -11,7 +11,7 @@ export function createGameCard(game: GameType) {
 
   const gameCardImage = document.createElement('img');
   gameCardImage.classList.add('gameCardImage');
-  // =====
+
   gameCardImage.alt = game.name;
 
   const imageUrl = getGameImageUrl(game.cardImage);
@@ -21,7 +21,6 @@ export function createGameCard(game: GameType) {
   } else {
     gameCardImage.hidden = true;
   }
-  // =====
 
   const gameCardInfoBlock = document.createElement('div');
   gameCardInfoBlock.classList.add('gameCardInfoBlock');
@@ -59,7 +58,7 @@ export function createGameCard(game: GameType) {
   detailsButton.textContent = 'Details';
 
   detailsButton.addEventListener('click', () => {
-    const gameDetailsDialog = createGameDetailsDialog();
+    const gameDetailsDialog = createGameDetailsDialog(game);
     document.body.append(gameDetailsDialog);
     gameDetailsDialog.showModal();
   });
