@@ -2,6 +2,7 @@ import '../styles/globals.scss';
 import { createHeader } from '../components/header/header';
 import { createFooter } from '../components/footer/ footer.ts';
 import { getRoutePath, navigate, router } from './router';
+import { restoreRedirectedRoute } from './navigation.ts';
 
 export type Page = 'home' | 'library';
 
@@ -44,7 +45,6 @@ app.addEventListener('click', (event) => {
 
   event.preventDefault();
   navigate(`/${page}`);
-  updateNavigation();
   window.scrollTo(0, 0);
 });
 
@@ -55,13 +55,16 @@ const footer = createFooter();
 app.prepend(header, main, footer);
 document.body.append(app);
 
-for (const link of header.querySelectorAll<HTMLAnchorElement>('a[data-page]')) {
+for (const link of app.querySelectorAll<HTMLAnchorElement>('a[data-page]')) {
   link.href = `${import.meta.env.BASE_URL}${link.dataset.page}`;
 }
 
-router();
-updateNavigation();
-globalThis.addEventListener('popstate', () => {
+function renderRoute(): void {
   router();
   updateNavigation();
-});
+}
+
+restoreRedirectedRoute();
+renderRoute();
+globalThis.addEventListener('popstate', renderRoute);
+globalThis.addEventListener('app:navigate', renderRoute);

@@ -65,7 +65,7 @@ export async function getGameDetails(
   slug: string,
   signal?: AbortSignal,
 ): Promise<GameDetailsResponse> {
-  const response = await fetch(`${baseUrl}games/${slug}`, { signal });
+  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}`, { signal });
 
   if (!response.ok) {
     throw new Error(`error HTTP: ${response.status}`);

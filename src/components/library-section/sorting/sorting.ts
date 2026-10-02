@@ -13,6 +13,7 @@ export type SortingValue = (typeof sortingValues)[number];
 export function createSortingElement(
   selectedSortValue: SortingValue = sortingValues[0],
   changeSortValue: (value: SortingValue) => void,
+  signal?: AbortSignal,
 ): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.classList.add('sortingWrapper');
@@ -79,11 +80,15 @@ export function createSortingElement(
     }
   });
 
-  document.body.addEventListener('click', (event) => {
-    if (event.target instanceof Node && !wrapper.contains(event.target)) {
-      sortingList.classList.remove('open');
-    }
-  });
+  document.body.addEventListener(
+    'click',
+    (event) => {
+      if (event.target instanceof Node && !wrapper.contains(event.target)) {
+        sortingList.classList.remove('open');
+      }
+    },
+    { signal },
+  );
 
   wrapper.append(sortingButton, sortingList);
 

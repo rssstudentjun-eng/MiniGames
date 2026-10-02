@@ -63,6 +63,21 @@ html.authDialogLocked {
   overflow: hidden;
 }
 
+.authClose {
+  border: 1px solid var(--on-primary);
+  background: var(--white);
+  display: flex;
+  margin-left: auto;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 25px;
+
+  img {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .authTab {
   flex: 1;
   padding: 12px 8px;
