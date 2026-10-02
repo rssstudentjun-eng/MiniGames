@@ -10,7 +10,7 @@ interface TopPlayer {
   favoriteGameName: string;
 }
 
-interface TopPlayersResponse {
+export interface TopPlayersResponse {
   data: TopPlayer[];
   meta: {
     totalItems: number;
@@ -18,61 +18,12 @@ interface TopPlayersResponse {
   };
 }
 
-const topPlayers: TopPlayersResponse = {
-  data: [
-    {
-      rank: 1,
-      playerName: 'Alex_Pro99',
-      gamesPlayed: 142,
-      totalScore: 94_250,
-      streakDays: 12,
-      favoriteGameSlug: 'heartopia',
-      favoriteGameName: 'Heartopia',
-    },
-    {
-      rank: 2,
-      playerName: 'CozyGamer_x',
-      gamesPlayed: 118,
-      totalScore: 81_400,
-      streakDays: 8,
-      favoriteGameSlug: 'cat-mail-co',
-      favoriteGameName: 'Cat Mail Co.',
-    },
-    {
-      rank: 3,
-      playerName: 'MatchMaster',
-      gamesPlayed: 98,
-      totalScore: 72_110,
-      streakDays: 5,
-      favoriteGameSlug: 'tiny-glade',
-      favoriteGameName: 'Tiny Glade',
-    },
-    {
-      rank: 4,
-      playerName: 'BubblePop',
-      gamesPlayed: 87,
-      totalScore: 65_900,
-      streakDays: 3,
-      favoriteGameSlug: 'whisper-of-the-house',
-      favoriteGameName: 'Whisper of the House',
-    },
-    {
-      rank: 5,
-      playerName: 'SudokuGod',
-      gamesPlayed: 74,
-      totalScore: 59_320,
-      streakDays: 2,
-      favoriteGameSlug: 'cat-chess',
-      favoriteGameName: 'Cat Chess',
-    },
-  ],
-  meta: {
-    totalItems: 5,
-    description: 'Top Players This Week',
-  },
-};
+export function createLeadBoardSection(
+  topPlayers: TopPlayersResponse | 'loading' | 'error',
+  onRetry?: () => void,
+) {
+  const data = typeof topPlayers === 'string' ? [] : topPlayers.data;
 
-export function createLeadBoardSection(): HTMLElement {
   const leaderBordSection = document.createElement('section');
   leaderBordSection.classList.add('leaderboardSection', 'container');
 
@@ -89,6 +40,45 @@ export function createLeadBoardSection(): HTMLElement {
 
   const wrapper = document.createElement('div');
   wrapper.className = 'leaderboardTableWrapper';
+  leaderBordSection.append(sectionLeaderBordTitle, wrapper);
+
+  if (topPlayers === 'loading') {
+    wrapper.setAttribute('aria-busy', 'true');
+    wrapper.setAttribute('aria-label', 'Loading top players');
+    const skeleton = document.createElement('div');
+    skeleton.className = 'leaderboardSkeleton';
+    skeleton.setAttribute('aria-hidden', 'true');
+    wrapper.append(skeleton);
+    return { element: leaderBordSection };
+  }
+
+  if (data.length === 0) {
+    const message = document.createElement('div');
+    message.className = 'leaderboardMessage';
+    wrapper.classList.add('leaderboardPlaceholder');
+    const text = document.createElement('p');
+    text.setAttribute('role', topPlayers === 'error' ? 'alert' : 'status');
+    text.textContent =
+      topPlayers === 'error'
+        ? "The leaderboard didn't load. Please try again."
+        : 'No top players yet.';
+    message.append(text);
+
+    if (topPlayers === 'error') {
+      message.classList.add('leaderboardMessageError');
+      const retryButton = document.createElement('button');
+      retryButton.type = 'button';
+      retryButton.className = 'leaderboardRetry';
+      retryButton.textContent = 'Try again';
+      retryButton.addEventListener('click', () => {
+        retryButton.disabled = true;
+        onRetry?.();
+      });
+      message.append(retryButton);
+    }
+    wrapper.append(message);
+    return { element: leaderBordSection };
+  }
 
   const table = document.createElement('table');
   table.className = 'leaderboardTable';
@@ -128,7 +118,7 @@ export function createLeadBoardSection(): HTMLElement {
     SudokuGod: 'SG',
   };
 
-  for (const player of topPlayers.data) {
+  for (const player of data) {
     const row = tbody.insertRow();
 
     const rank = row.insertCell();
@@ -194,7 +184,5 @@ export function createLeadBoardSection(): HTMLElement {
   }
 
   wrapper.append(table);
-  leaderBordSection.append(sectionLeaderBordTitle, wrapper);
-
-  return leaderBordSection;
+  return { element: leaderBordSection };
 }

@@ -16,12 +16,15 @@ function createArrow(label: string, className: string) {
   return button;
 }
 
-export function createPagination(totalPages = 8): HTMLElement {
+export function createPagination(
+  currentPage: number,
+  changePaginationPage: (newPage: number) => void,
+  totalPages: number,
+  signal?: AbortSignal,
+): HTMLElement {
   if (!Number.isSafeInteger(totalPages) || totalPages < 1) {
     throw new RangeError('totalPages must be a positive integer');
   }
-
-  let currentPage = 1;
 
   const mobileQuery = globalThis.matchMedia('(max-width: 760px)');
 
@@ -39,9 +42,7 @@ export function createPagination(totalPages = 8): HTMLElement {
     if (page === currentPage || page < 1 || page > totalPages) {
       return;
     }
-
-    currentPage = page;
-    render();
+    changePaginationPage(page);
   }
 
   function render() {
@@ -103,7 +104,7 @@ export function createPagination(totalPages = 8): HTMLElement {
     selectPage(currentPage + 1);
   });
 
-  mobileQuery.addEventListener('change', render);
+  mobileQuery.addEventListener('change', render, { signal });
 
   paginationWrapper.append(leftButton, pagesList, rightButton);
   render();

@@ -1,8 +1,20 @@
 import './games-filter.scss';
 
-const filterValues = ['All Games', 'Puzzle', 'Card', 'Match', 'Farm', 'Strategy', 'Arcade'];
+export const filterValues = [
+  'all',
+  'puzzle',
+  'card',
+  'match',
+  'farm',
+  'strategy',
+  'arcade',
+] as const;
+export type GameCategory = (typeof filterValues)[number];
 
-export function createGamesFilter(): HTMLElement {
+export function createGamesFilter(
+  changeCategory: (category: GameCategory) => void,
+  selectedCategory: GameCategory = 'all',
+): HTMLElement {
   const gamesFilterWrapper = document.createElement('ul');
   gamesFilterWrapper.classList.add('gamesFilterWrapper');
 
@@ -17,17 +29,12 @@ export function createGamesFilter(): HTMLElement {
 
     gameFilterButton.textContent = gamesFilterElement;
 
-    if (gamesFilterElement === 'All Games') {
+    if (gamesFilterElement === selectedCategory) {
       gameFilterButton.classList.add('activeBtn');
     }
 
     gameFilterButton.addEventListener('click', () => {
-      const buttons = gamesFilterWrapper.querySelectorAll('.btn');
-
-      for (const button of buttons) {
-        button.classList.remove('activeBtn');
-      }
-      gameFilterButton.classList.add('activeBtn');
+      changeCategory(gamesFilterElement);
     });
 
     gamesFilterWrapper.append(gameFilterItem);

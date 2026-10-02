@@ -5,6 +5,7 @@ import lockIcon from '../../assets/icons/lockIcon.svg';
 import mailIcon from '../../assets/icons/mailIcon.svg';
 import personIcon from '../../assets/icons/personIcon.svg';
 import visibilityIcon from '../../assets/icons/visibilityIcon.svg';
+import closeIcon from '../../assets/icons/closeIcon.svg';
 
 export type AuthMode = 'login' | 'register';
 
@@ -86,10 +87,17 @@ function createField(options: FieldOptions): HTMLDivElement {
   return field;
 }
 
-export function createAuthDialog(): HTMLDialogElement {
+export function createAuthDialog(options: {
+  onClose: () => void;
+  onModeChange: (mode: AuthMode) => void;
+}): HTMLDialogElement {
   const dialog = document.createElement('dialog');
   dialog.className = 'authDialog';
   dialog.setAttribute('aria-labelledby', 'auth-title');
+  const closeButton = createButton('', 'authClose');
+  closeButton.setAttribute('aria-label', 'Close authentication');
+  closeButton.append(createIcon(closeIcon));
+  closeButton.addEventListener('click', options.onClose);
 
   const tabs = document.createElement('div');
   tabs.className = 'authTabs';
@@ -165,7 +173,7 @@ export function createAuthDialog(): HTMLDialogElement {
     const registerButton = createButton('Register', 'authTextButton');
 
     registerButton.addEventListener('click', () => {
-      renderRegisterForm();
+      options.onModeChange('register');
     });
 
     footer.replaceChildren("Don't have an account? ", registerButton);
@@ -227,18 +235,18 @@ export function createAuthDialog(): HTMLDialogElement {
     const loginButton = createButton('Login', 'authTextButton');
 
     loginButton.addEventListener('click', () => {
-      renderLoginForm();
+      options.onModeChange('login');
     });
 
     footer.replaceChildren('Already have an account? ', loginButton);
   }
 
   loginTab.addEventListener('click', () => {
-    renderLoginForm();
+    options.onModeChange('login');
   });
 
   registerTab.addEventListener('click', () => {
-    renderRegisterForm();
+    options.onModeChange('register');
   });
 
   dialog.addEventListener('auth:mode', (event) => {
@@ -252,32 +260,15 @@ export function createAuthDialog(): HTMLDialogElement {
     renderLoginForm();
   });
 
-  let isClosing = false;
   let previousFocusedElement: HTMLElement | undefined;
-
-  function closeDialog(): void {
-    if (isClosing || !dialog.open) {
-      return;
-    }
-
-    isClosing = true;
-    dialog.classList.add('authDialogClosing');
-
-    const shouldReduceMotion = globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const animationDuration = shouldReduceMotion ? 0 : 200;
-
-    globalThis.setTimeout(() => {
-      dialog.close();
-
-      dialog.classList.remove('authDialogClosing');
+  dialog.addEventListener('close', () => {
+    if (!document.querySelector('.authDialog[open]')) {
       document.documentElement.classList.remove('authDialogLocked');
-
-      isClosing = false;
-
-      previousFocusedElement?.focus();
-    }, animationDuration);
-  }
+    }
+    if (!document.querySelector('dialog[open]') && previousFocusedElement?.isConnected) {
+      previousFocusedElement.focus();
+    }
+  });
 
   dialog.addEventListener('auth:open', () => {
     if (dialog.open) {
@@ -295,7 +286,7 @@ export function createAuthDialog(): HTMLDialogElement {
 
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    closeDialog();
+    options.onClose();
   });
 
   function isClickOutsideDialog(event: PointerEvent | MouseEvent): boolean {
@@ -319,13 +310,13 @@ export function createAuthDialog(): HTMLDialogElement {
       isBackdropPressed && event.target === dialog && isClickOutsideDialog(event);
 
     if (isBackdropClicked) {
-      closeDialog();
+      options.onClose();
     }
 
     isBackdropPressed = false;
   });
 
-  dialog.append(tabs, title, description, form, divider, googleButton, footer);
+  dialog.append(closeButton, tabs, title, description, form, divider, googleButton, footer);
 
   renderLoginForm();
 

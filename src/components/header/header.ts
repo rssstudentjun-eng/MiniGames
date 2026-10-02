@@ -1,6 +1,6 @@
 import headerLogoUrl from '../../assets/icons/headerLogo.svg';
 import './header.scss';
-import { createAuthDialog, openAuthDialog } from '../dialogs/auth-dialog';
+import { openAuthentication } from '../../app/navigation.ts';
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -44,6 +44,7 @@ export function createHeader(): HTMLElement {
   const logo = document.createElement('a');
   logo.classList.add('headerLogoWrap');
   logo.href = '/';
+  logo.dataset.page = 'home';
 
   const logoIcon = document.createElement('img');
   logoIcon.classList.add('headerLogoIcon');
@@ -139,7 +140,6 @@ export function createHeader(): HTMLElement {
 
   container.append(logo, navList, buttonsWrapper, menuButton);
 
-  const authDialog = createAuthDialog();
   for (const [trigger, mode] of [
     [logInButton, 'login'],
     [signUpButton, 'register'],
@@ -151,11 +151,11 @@ export function createHeader(): HTMLElement {
         closeMobileMenu();
         menuButton.focus();
       }
-      openAuthDialog(authDialog, mode);
+      openAuthentication(mode);
     });
   }
 
-  header.append(container, mobileMenu, authDialog);
+  header.append(container, mobileMenu);
 
   return header;
 }
