@@ -2,7 +2,7 @@ import './game-card.scss';
 import star from '../../../assets/icons/starIcon.svg';
 import heart from '../../../assets/icons/heartIcon.svg';
 import type { GameType } from '../../library-section/types/game.ts';
-import { createGameDetailsDialog } from '../../dialogs/game-details-dialog';
+import { openGameDialog } from '../../../app/navigation.ts';
 import { getGameImageUrl } from '../../../utils/game-image';
 
 export const createGameCard = (game: GameType) => {
@@ -14,9 +14,7 @@ export const createGameCard = (game: GameType) => {
   content.setAttribute('aria-label', `View details: ${game.name}`);
 
   content.addEventListener('click', () => {
-    const dialog = createGameDetailsDialog(game);
-    document.body.append(dialog);
-    dialog.showModal();
+    openGameDialog(game.slug);
   });
 
   const image = document.createElement('img');

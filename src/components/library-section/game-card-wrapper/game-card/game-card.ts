@@ -2,7 +2,7 @@ import './game-card.scss';
 import heartIcon from '../../../../assets/icons/heartIcon.svg';
 import starIcon from '../../../../assets/icons/starIcon.svg';
 import { GameType } from '../../types/game.ts';
-import { createGameDetailsDialog } from '../../../dialogs/game-details-dialog.ts';
+import { openGameDialog } from '../../../../app/navigation.ts';
 import { getGameImageUrl } from '../../../../utils/game-image.ts';
 
 export function createGameCard(game: GameType) {
@@ -58,9 +58,7 @@ export function createGameCard(game: GameType) {
   detailsButton.textContent = 'Details';
 
   detailsButton.addEventListener('click', () => {
-    const gameDetailsDialog = createGameDetailsDialog(game);
-    document.body.append(gameDetailsDialog);
-    gameDetailsDialog.showModal();
+    openGameDialog(game.slug);
   });
 
   const statsInfoBlock = document.createElement('div');

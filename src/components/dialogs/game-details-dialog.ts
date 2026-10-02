@@ -11,7 +11,6 @@ import medal_3 from '../../assets/images/medal_3.png';
 import { getGameComments, getGameDetails } from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
 import { formatCommentTime } from '../../utils/format-comment-time.ts';
-import { GameType } from '../library-section/types/game.ts';
 import { GameComment, GameDetails } from './types/dialog-types.ts';
 
 const medals = [medal_1, medal_2, medal_3];
@@ -62,7 +61,7 @@ export async function fetchGameDetails(
   return { gameData, comments, totalComments: meta.totalComments };
 }
 
-function createGameDetailsContent(game: GameType, result: GameDialogData) {
+function createGameDetailsContent(result: GameDialogData) {
   const { gameData, comments, totalComments } = result;
 
   const dialogContent = document.createElement('div');
@@ -70,15 +69,15 @@ function createGameDetailsContent(game: GameType, result: GameDialogData) {
 
   const cardImage = document.createElement('img');
   cardImage.classList.add('cardImage');
-  cardImage.alt = 'Game Image';
+  cardImage.alt = gameData.name;
 
-  const imageUrl = getGameImageUrl(game.cardImage);
+  const imageUrl = getGameImageUrl(`/assets/images/games/${gameData.slug}-card.jpg`);
 
   if (imageUrl) {
     cardImage.src = imageUrl;
   } else {
     cardImage.hidden = true;
-    console.warn('Image not found:', game.cardImage);
+    console.warn('Image not found:', gameData.heroImage);
   }
 
   const titleBlock = document.createElement('div');
@@ -183,7 +182,6 @@ function createGameDetailsContent(game: GameType, result: GameDialogData) {
     item.append(name, score, daysCounter);
     topRecordsBlock.append(item);
   }
-  // ====
   const commentsBlock = document.createElement('div');
   commentsBlock.classList.add('commentsBlock');
 
@@ -265,7 +263,6 @@ function createGameDetailsContent(game: GameType, result: GameDialogData) {
     emptyMessage.textContent = 'Comments list is empty';
     commentsBlock.append(emptyMessage);
   }
-  // ====
   const dialogButtonsWrapper = document.createElement('div');
   dialogButtonsWrapper.classList.add('dialogButtonsWrapper');
 
@@ -308,10 +305,10 @@ function createGameDetailsContent(game: GameType, result: GameDialogData) {
   return dialogContent;
 }
 
-export function createGameDetailsDialog(game: GameType): HTMLDialogElement {
+export function createGameDetailsDialog(slug: string, onClose: () => void): HTMLDialogElement {
   const gameDetailsDialog = document.createElement('dialog');
   gameDetailsDialog.classList.add('gameDetailsDialog');
-  gameDetailsDialog.setAttribute('aria-label', `Game details: ${game.name}`);
+  gameDetailsDialog.setAttribute('aria-label', 'Game details');
 
   const closeButton = document.createElement('button');
   closeButton.type = 'button';
@@ -335,9 +332,9 @@ export function createGameDetailsDialog(game: GameType): HTMLDialogElement {
     content.replaceChildren(createGameDetailsSkeleton());
 
     try {
-      const result = await fetchGameDetails(game.slug, controller.signal);
+      const result = await fetchGameDetails(slug, controller.signal);
       if (!result || controller.signal.aborted) return;
-      content.replaceChildren(createGameDetailsContent(game, result));
+      content.replaceChildren(createGameDetailsContent(result));
       gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');
     } catch (error) {
       if (controller.signal.aborted) return;
@@ -373,13 +370,13 @@ export function createGameDetailsDialog(game: GameType): HTMLDialogElement {
       (target instanceof Element && target.closest('.gameDetailsDialogClose'))
     ) {
       requestState.controller?.abort();
-      closeDialog(gameDetailsDialog);
+      onClose();
     }
   });
   gameDetailsDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
     requestState.controller?.abort();
-    closeDialog(gameDetailsDialog);
+    onClose();
   });
   gameDetailsDialog.addEventListener('close', () => {
     requestState.controller?.abort();

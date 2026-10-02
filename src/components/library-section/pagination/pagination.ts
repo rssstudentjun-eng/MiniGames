@@ -20,6 +20,7 @@ export function createPagination(
   currentPage: number,
   changePaginationPage: (newPage: number) => void,
   totalPages: number,
+  signal?: AbortSignal,
 ): HTMLElement {
   if (!Number.isSafeInteger(totalPages) || totalPages < 1) {
     throw new RangeError('totalPages must be a positive integer');
@@ -103,7 +104,7 @@ export function createPagination(
     selectPage(currentPage + 1);
   });
 
-  mobileQuery.addEventListener('change', render);
+  mobileQuery.addEventListener('change', render, { signal });
 
   paginationWrapper.append(leftButton, pagesList, rightButton);
   render();

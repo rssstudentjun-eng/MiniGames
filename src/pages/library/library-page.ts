@@ -1,37 +1,34 @@
 ﻿import { createLibrarySection } from '../../components/library-section/library-section.ts';
 import { getGamesUniversal } from '../../services/api.ts';
 import type { GameCategory } from '../../components/library-section/games-filter/games-filter.ts';
-import { SortingValue, sortingValues } from '../../components/library-section/sorting/sorting.ts';
+import type { SortingValue } from '../../components/library-section/sorting/sorting.ts';
+import { updateRouteParameters, type LibraryState } from '../../app/navigation.ts';
 
-export function createLibraryPage() {
+function changeCategory(nextCategory: GameCategory): void {
+  updateRouteParameters({ category: nextCategory, page: '1' });
+}
+
+function changeSortValue(nextSortValue: SortingValue): void {
+  updateRouteParameters({ sort: nextSortValue.value, page: '1' });
+}
+
+function changePaginationPage(newPage: number): void {
+  updateRouteParameters({ page: String(newPage) });
+}
+
+export function createLibraryPage(state: LibraryState) {
   const page = document.createDocumentFragment();
   const librarySectionContainer = document.createElement('div');
-  let category: GameCategory = 'all';
-  let sortValue: SortingValue = sortingValues[0];
-  let currentPage: number = 1;
+  const { category, sort: sortValue, page: currentPage } = state;
   let controller: AbortController | undefined;
-
-  function changeCategory(nextCategory: GameCategory): void {
-    category = nextCategory;
-    currentPage = 1;
-    void loadGames();
-  }
-
-  function changeSortValue(nextSortValue: SortingValue): void {
-    sortValue = nextSortValue;
-    currentPage = 1;
-    void loadGames();
-  }
-
-  function changePaginationPage(newPage: number): void {
-    currentPage = newPage;
-    void loadGames();
-  }
+  let sectionController: AbortController | undefined;
 
   async function loadGames(): Promise<void> {
     controller?.abort();
     const requestController = new AbortController();
     controller = requestController;
+    sectionController?.abort();
+    sectionController = new AbortController();
 
     librarySectionContainer.replaceChildren(
       createLibrarySection(
@@ -42,6 +39,7 @@ export function createLibraryPage() {
         sortValue,
         changePaginationPage,
         () => void loadGames(),
+        sectionController.signal,
       ).element,
     );
 
@@ -53,7 +51,13 @@ export function createLibraryPage() {
         sort: sortValue.value,
       });
       if (requestController.signal.aborted) return;
-      currentPage = games.data.length === 0 ? 1 : games.meta.page;
+      const returnedPage = games.data.length === 0 ? 1 : games.meta.page;
+      if (returnedPage !== currentPage) {
+        updateRouteParameters({ page: String(returnedPage) }, true);
+        return;
+      }
+      sectionController.abort();
+      sectionController = new AbortController();
       librarySectionContainer.replaceChildren(
         createLibrarySection(
           games,
@@ -63,10 +67,13 @@ export function createLibraryPage() {
           sortValue,
           changePaginationPage,
           () => void loadGames(),
+          sectionController.signal,
         ).element,
       );
     } catch {
       if (requestController.signal.aborted) return;
+      sectionController.abort();
+      sectionController = new AbortController();
       librarySectionContainer.replaceChildren(
         createLibrarySection(
           'error',
@@ -76,6 +83,7 @@ export function createLibraryPage() {
           sortValue,
           changePaginationPage,
           () => void loadGames(),
+          sectionController.signal,
         ).element,
       );
     }
@@ -83,5 +91,11 @@ export function createLibraryPage() {
 
   void loadGames();
   page.append(librarySectionContainer);
-  return page;
+  return {
+    content: page,
+    destroy() {
+      controller?.abort();
+      sectionController?.abort();
+    },
+  };
 }
