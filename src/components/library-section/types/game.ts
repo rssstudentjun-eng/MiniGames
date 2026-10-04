@@ -11,6 +11,8 @@ export interface GameType {
 }
 
 export interface GamesMetaType {
+  page: number;
+  totalPages: number;
   totalItems: number;
   description: string;
   featuredCount: number;

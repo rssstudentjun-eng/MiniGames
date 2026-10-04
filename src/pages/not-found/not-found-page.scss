@@ -1,0 +1,38 @@
+.notFoundPage {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-3);
+  padding: var(--size-8) var(--size-3);
+  text-align: center;
+}
+
+.notFoundTitle {
+  font-size: var(--display-medium);
+  font-weight: var(--bold);
+  color: var(--on-primary);
+}
+
+.notFoundMessage {
+  font-size: var(--body-large);
+  color: var(--on-bg);
+}
+
+.notFoundButton {
+  padding: var(--btn-standard-padding);
+  border: 2px solid var(--on-primary);
+  border-radius: var(--corner-small);
+  background-color: var(--primary);
+  font-weight: var(--bold);
+
+  &:hover {
+    background-color: var(--primary-high);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--on-primary);
+    outline-offset: 4px;
+  }
+}

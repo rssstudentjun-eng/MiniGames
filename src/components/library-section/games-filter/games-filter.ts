@@ -1,12 +1,31 @@
 import './games-filter.scss';
 
-const filterValues = ['All Games', 'Puzzle', 'Card', 'Match', 'Farm', 'Strategy', 'Arcade'];
+export const filterValues = [
+  'all',
+  'puzzle',
+  'card',
+  'match',
+  'farm',
+  'strategy',
+  'arcade',
+] as const;
+export type GameCategory = (typeof filterValues)[number];
 
-export function createGamesFilter(): HTMLElement {
+export interface Category {
+  slug: GameCategory;
+  label: string;
+  isDefault: boolean;
+}
+
+export function createGamesFilter(
+  changeCategory: (category: GameCategory) => void,
+  selectedCategory: GameCategory = 'all',
+  categories: Category[] = [],
+): HTMLElement {
   const gamesFilterWrapper = document.createElement('ul');
   gamesFilterWrapper.classList.add('gamesFilterWrapper');
 
-  for (const gamesFilterElement of filterValues) {
+  for (const category of categories) {
     const gameFilterItem = document.createElement('li');
 
     const gameFilterButton = document.createElement('button');
@@ -15,19 +34,14 @@ export function createGamesFilter(): HTMLElement {
 
     gameFilterItem.append(gameFilterButton);
 
-    gameFilterButton.textContent = gamesFilterElement;
+    gameFilterButton.textContent = category.label;
 
-    if (gamesFilterElement === 'All Games') {
+    if (category.slug === selectedCategory) {
       gameFilterButton.classList.add('activeBtn');
     }
 
     gameFilterButton.addEventListener('click', () => {
-      const buttons = gamesFilterWrapper.querySelectorAll('.btn');
-
-      for (const button of buttons) {
-        button.classList.remove('activeBtn');
-      }
-      gameFilterButton.classList.add('activeBtn');
+      changeCategory(category.slug);
     });
 
     gamesFilterWrapper.append(gameFilterItem);

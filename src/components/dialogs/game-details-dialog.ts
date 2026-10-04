@@ -2,14 +2,17 @@ import './game-details-dialog.scss';
 import starIcon from '../../assets/icons/starIcon.svg';
 import heartIcon from '../../assets/icons/heartIcon.svg';
 import grayHeartIcon from '../../assets/icons/grayHeartIcon.svg';
-import { temporaryData } from './game-details-data-temporary.ts';
-import dialogMainImage from '../../../src/assets/images/tukoni-forest-keepers-hero.jpg';
 import sendCommentIcon from '../../assets/icons/sendCommentIcon.svg';
 import closeIcon from '../../assets/icons/closeIcon.svg';
 import cupImageIcon from '../../assets/images/cup.png';
 import medal_1 from '../../assets/images/medal_1.png';
 import medal_2 from '../../assets/images/medal_2.png';
 import medal_3 from '../../assets/images/medal_3.png';
+import { ApiError, getGameComments, getGameDetails } from '../../services/api.ts';
+import { getGameImageUrl } from '../../utils/game-image.ts';
+import { formatCommentTime } from '../../utils/format-comment-time.ts';
+import { GameComment, GameDetails } from './types/dialog-types.ts';
+import { showSnackbar } from '../snackbar/snackbar.ts';
 
 const medals = [medal_1, medal_2, medal_3];
 
@@ -26,28 +29,63 @@ export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   gameDetailsDialog.classList.add('isClosing');
 }
 
-export function createGameDetailsDialog() {
-  const { comments, gameData } = temporaryData;
+interface GameDialogData {
+  gameData: GameDetails;
+  comments: GameComment[];
+  totalComments: number;
+  commentsError?: boolean;
+}
 
-  const gameDetailsDialog = document.createElement('dialog');
-  gameDetailsDialog.classList.add('gameDetailsDialog');
+export async function fetchGameDetails(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<GameDialogData | undefined> {
+  const { data: gameData } = await getGameDetails(slug, signal);
+  if (signal?.aborted) return;
+  if (!gameData) throw new ApiError(404);
+  if (
+    !gameData.name ||
+    !gameData.fullDescription ||
+    !gameData.specs ||
+    !Array.isArray(gameData.topRecords)
+  ) {
+    throw new Error('Game details are unavailable');
+  }
+
+  try {
+    const { data: comments, meta } = await getGameComments(slug, signal);
+    if (signal?.aborted) return;
+    if (!Array.isArray(comments) || !Number.isFinite(meta?.totalComments)) {
+      throw new TypeError('Comments are unavailable');
+    }
+    return { gameData, comments, totalComments: meta.totalComments };
+  } catch {
+    if (signal?.aborted) return;
+    showSnackbar('Could not load comments.', 'error');
+    return { gameData, comments: [], totalComments: 0, commentsError: true };
+  }
+}
+
+function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
+  const { gameData, comments, totalComments, commentsError } = result;
 
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('gameDetailsDialogContent');
 
-  const closeButton = document.createElement('button');
-  const closeButtonImage = document.createElement('img');
-  closeButtonImage.alt = 'Close Icon';
-  closeButtonImage.classList.add('closeButtonImage');
-  closeButtonImage.src = closeIcon;
-  closeButton.append(closeButtonImage);
-  closeButton.type = 'button';
-  closeButton.classList.add('gameDetailsDialogClose');
-
   const cardImage = document.createElement('img');
   cardImage.classList.add('cardImage');
-  cardImage.alt = 'Game Image';
-  cardImage.src = dialogMainImage;
+  cardImage.alt = gameData.name;
+
+  const imageUrl =
+    getGameImageUrl(gameData.heroImage) ??
+    getGameImageUrl(`/assets/images/games/${gameData.slug}-card.jpg`);
+
+  if (imageUrl) {
+    cardImage.src = imageUrl;
+  } else {
+    cardImage.hidden = true;
+    console.warn('Image not found:', gameData.heroImage);
+  }
 
   const titleBlock = document.createElement('div');
   titleBlock.classList.add('titleBlock');
@@ -59,7 +97,7 @@ export function createGameDetailsDialog() {
   const ratingBlockImg = document.createElement('img');
   ratingBlockImg.alt = 'Rating';
   ratingBlockImg.src = starIcon;
-  ratingBlock.textContent = String(gameData.rating);
+  ratingBlock.textContent = String(gameData?.rating);
   ratingBlock.prepend(ratingBlockImg);
 
   const likesBlock = document.createElement('div');
@@ -67,27 +105,28 @@ export function createGameDetailsDialog() {
   const likesBlockImg = document.createElement('img');
   likesBlockImg.alt = 'Likes';
   likesBlockImg.src = heartIcon;
-  likesBlock.textContent = `${gameData.likesCount / 100 / 10}K`;
+  likesBlock.textContent = `${gameData?.likesCount / 100 / 10}K`;
   likesBlock.prepend(likesBlockImg);
 
   statsInfoBlock.append(ratingBlock, likesBlock);
 
   const dialogTitle = document.createElement('h2');
   dialogTitle.classList.add('dialogTitle');
-  dialogTitle.textContent = gameData.name;
+  dialogTitle.textContent = gameData?.name;
   dialogTitle.id = 'game-details-title';
-  gameDetailsDialog.setAttribute('aria-labelledby', dialogTitle.id);
 
   titleBlock.append(dialogTitle, statsInfoBlock);
 
   const dialogDescription = document.createElement('p');
   dialogDescription.classList.add('dialogDescription');
-  dialogDescription.textContent = gameData.fullDescription;
+  dialogDescription.textContent = gameData?.fullDescription;
 
   const gameInfoWrapper = document.createElement('div');
   gameInfoWrapper.classList.add('gameInfoWrapper');
 
-  for (const [key, value] of Object.entries(gameData.specs)) {
+  const specsEntries = Object.entries(gameData.specs);
+
+  for (const [key, value] of specsEntries) {
     const item = document.createElement('div');
     item.classList.add('gameInfoItem');
 
@@ -114,7 +153,9 @@ export function createGameDetailsDialog() {
   topRecordsTitle.prepend(cupImage);
   topRecordsBlock.append(topRecordsTitle);
 
-  for (const value of gameData.topRecords) {
+  const topRecords = gameData.topRecords;
+
+  for (const value of topRecords) {
     const item = document.createElement('div');
     item.classList.add('gameRecordsItem');
 
@@ -148,12 +189,12 @@ export function createGameDetailsDialog() {
     item.append(name, score, daysCounter);
     topRecordsBlock.append(item);
   }
-
   const commentsBlock = document.createElement('div');
   commentsBlock.classList.add('commentsBlock');
+
   const commentsBlockTitle = document.createElement('h3');
   commentsBlockTitle.classList.add('commentsBlockTitle');
-  commentsBlockTitle.textContent = `Comments (${comments.length})`;
+  commentsBlockTitle.textContent = commentsError ? 'Comments' : `Comments (${totalComments})`;
 
   const commentInputBlock = document.createElement('div');
   commentInputBlock.classList.add('commentInputBlock');
@@ -198,12 +239,10 @@ export function createGameDetailsDialog() {
       commentAuthorFirstLetter.classList.add('thirdComment');
     }
 
-    const daysCounter = document.createElement('p');
+    const daysCounter = document.createElement('time');
     daysCounter.classList.add('daysCounter');
-    const millisecondsPerDay = 1000 * 60 * 60 * 24;
-    const difference = Date.now() - new Date(comment.createdAt).getTime();
-    const daysAgo = Math.floor(difference / millisecondsPerDay);
-    daysCounter.textContent = `${daysAgo} days ago`;
+    daysCounter.dateTime = comment.createdAt;
+    daysCounter.textContent = formatCommentTime(comment.createdAt);
 
     commentTop.append(commentAuthorFirstLetter, commentAuthor, daysCounter);
 
@@ -225,6 +264,22 @@ export function createGameDetailsDialog() {
 
   commentsBlock.append(commentsBlockTitle, commentInputBlock, commentsList);
 
+  if (commentsError) {
+    const message = document.createElement('p');
+    message.setAttribute('role', 'alert');
+    message.textContent = 'Comments could not be loaded. Please try again.';
+    const retryButton = document.createElement('button');
+    retryButton.type = 'button';
+    retryButton.classList.add('playButton');
+    retryButton.textContent = 'Try again';
+    retryButton.addEventListener('click', onRetry);
+    commentsBlock.append(message, retryButton);
+  } else if (comments.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.classList.add('emptyMessage');
+    emptyMessage.textContent = 'Comments list is empty';
+    commentsBlock.append(emptyMessage);
+  }
   const dialogButtonsWrapper = document.createElement('div');
   dialogButtonsWrapper.classList.add('dialogButtonsWrapper');
 
@@ -262,20 +317,97 @@ export function createGameDetailsDialog() {
     commentsBlock,
   );
 
-  dialogContent.append(closeButton, cardImage, gameInfoBlock);
+  dialogContent.append(cardImage, gameInfoBlock);
 
-  gameDetailsDialog.append(dialogContent);
+  return dialogContent;
+}
+
+export function createGameDetailsDialog(slug: string, onClose: () => void): HTMLDialogElement {
+  const gameDetailsDialog = document.createElement('dialog');
+  gameDetailsDialog.classList.add('gameDetailsDialog');
+  gameDetailsDialog.setAttribute('aria-label', 'Game details');
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.classList.add('gameDetailsDialogClose');
+  closeButton.setAttribute('aria-label', 'Close game details');
+  const closeImage = document.createElement('img');
+  closeImage.src = closeIcon;
+  closeImage.alt = '';
+  closeImage.classList.add('closeButtonImage');
+  closeButton.append(closeImage);
+
+  const content = document.createElement('div');
+  gameDetailsDialog.append(closeButton, content);
+  const requestState: { controller?: AbortController } = {};
+
+  async function loadContent(isRetry = false) {
+    requestState.controller?.abort();
+    const controller = new AbortController();
+    requestState.controller = controller;
+    gameDetailsDialog.setAttribute('aria-busy', 'true');
+    content.replaceChildren(createGameDetailsSkeleton());
+
+    try {
+      const result = await fetchGameDetails(slug, controller.signal);
+      if (!result || controller.signal.aborted) return;
+      content.replaceChildren(createGameDetailsContent(result, () => void loadContent(true)));
+      if (isRetry && !result.commentsError) showSnackbar('Game details loaded.', 'success');
+      gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      controller.abort();
+      const isNotFound = error instanceof ApiError && error.status === 404;
+      showSnackbar(isNotFound ? 'Game Not Found.' : 'Could not load game details.', 'error');
+      const errorBlock = document.createElement('div');
+      errorBlock.classList.add('gameDetailsError');
+      errorBlock.setAttribute('role', 'alert');
+      const title = document.createElement('h2');
+      title.textContent = isNotFound ? 'Game Not Found' : 'Game details could not be loaded';
+      const message = document.createElement('p');
+      message.textContent = isNotFound
+        ? 'The requested game does not exist.'
+        : 'Please check your connection and try again.';
+      const retryButton = document.createElement('button');
+      retryButton.type = 'button';
+      retryButton.classList.add('playButton');
+      retryButton.textContent = 'Try again';
+      retryButton.addEventListener('click', () => {
+        void loadContent(true);
+      });
+      errorBlock.append(title, message);
+      if (!isNotFound) errorBlock.append(retryButton);
+      content.replaceChildren(errorBlock);
+    } finally {
+      if (requestState.controller === controller) {
+        gameDetailsDialog.setAttribute('aria-busy', 'false');
+      }
+    }
+  }
 
   gameDetailsDialog.addEventListener('click', (event) => {
-    if (event.target === gameDetailsDialog) {
-      closeDialog(gameDetailsDialog);
+    const target = event.target;
+    const rect = gameDetailsDialog.getBoundingClientRect();
+    const isOutside =
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom;
+    if (
+      (target === gameDetailsDialog && isOutside) ||
+      (target instanceof Element && target.closest('.gameDetailsDialogClose'))
+    ) {
+      requestState.controller?.abort();
+      onClose();
     }
   });
   gameDetailsDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    closeDialog(gameDetailsDialog);
+    requestState.controller?.abort();
+    onClose();
   });
   gameDetailsDialog.addEventListener('close', () => {
+    requestState.controller?.abort();
     gameDetailsDialog.remove();
   });
 
@@ -285,9 +417,21 @@ export function createGameDetailsDialog() {
     }
   });
 
-  closeButton.addEventListener('click', () => {
-    closeDialog(gameDetailsDialog);
-  });
-
+  void loadContent();
   return gameDetailsDialog;
+}
+
+function createGameDetailsSkeleton(): HTMLElement {
+  const skeleton = document.createElement('div');
+  skeleton.classList.add('gameDetailsSkeleton');
+  skeleton.setAttribute('role', 'status');
+  skeleton.setAttribute('aria-label', 'Loading game details');
+  const blocks = ['hero', 'title', 'text', 'text', 'specs', 'records', 'records', 'comments'];
+  for (const block of blocks) {
+    const placeholder = document.createElement('div');
+    placeholder.classList.add('gameDetailsSkeletonBlock', `gameDetailsSkeleton-${block}`);
+    placeholder.setAttribute('aria-hidden', 'true');
+    skeleton.append(placeholder);
+  }
+  return skeleton;
 }

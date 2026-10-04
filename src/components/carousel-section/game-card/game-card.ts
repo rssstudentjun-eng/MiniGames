@@ -2,7 +2,8 @@ import './game-card.scss';
 import star from '../../../assets/icons/starIcon.svg';
 import heart from '../../../assets/icons/heartIcon.svg';
 import type { GameType } from '../../library-section/types/game.ts';
-import { createGameDetailsDialog } from '../../dialogs/game-details-dialog';
+import { openGameDialog } from '../../../app/navigation.ts';
+import { getGameImageUrl } from '../../../utils/game-image';
 
 export const createGameCard = (game: GameType) => {
   const card = document.createElement('li');
@@ -11,15 +12,23 @@ export const createGameCard = (game: GameType) => {
   content.type = 'button';
   content.className = 'carouselCardContent';
   content.setAttribute('aria-label', `View details: ${game.name}`);
+
   content.addEventListener('click', () => {
-    const dialog = createGameDetailsDialog();
-    document.body.append(dialog);
-    dialog.showModal();
+    openGameDialog(game.slug);
   });
 
   const image = document.createElement('img');
   image.className = 'carouselCardImage';
-  image.src = game.cardImage;
+
+  const imageUrl = getGameImageUrl(game.cardImage);
+
+  if (imageUrl) {
+    image.src = imageUrl;
+  } else {
+    image.hidden = true;
+    console.warn('Image not found:', game.cardImage);
+  }
+
   image.alt = game.name;
   image.draggable = false;
 

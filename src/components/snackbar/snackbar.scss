@@ -1,0 +1,20 @@
+.snackbar {
+  padding: var(--size-2) var(--size-3);
+  border: 2px solid var(--on-primary);
+  border-radius: var(--corner-small);
+  box-shadow: var(--shadow-level-1);
+  inset: auto var(--size-2) var(--size-3);
+  position: fixed;
+  width: fit-content;
+  margin-inline: auto;
+}
+
+.snackbarError {
+  color: var(--white);
+  background-color: var(--error);
+}
+
+.snackbarSuccess {
+  color: var(--on-primary);
+  background-color: var(--primary);
+}

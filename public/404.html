@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>MiniGames</title>
+  </head>
+  <body>
+    <p>Opening MiniGames…</p>
+    <script>
+      const path = location.pathname + location.search + location.hash;
+      location.replace('/MiniGames/?__spa=' + encodeURIComponent(path));
+    </script>
+  </body>
+</html>

@@ -1,30 +1,19 @@
 import '../styles/globals.scss';
 import { createHeader } from '../components/header/header';
 import { createFooter } from '../components/footer/ footer.ts';
-import { createHomePage } from '../pages/home/home-page.ts';
-import { createLibraryPage } from '../pages/library/library-page.ts';
+import { getRoutePath, navigate, router } from './router';
+import { restoreRedirectedRoute } from './navigation.ts';
 
 export type Page = 'home' | 'library';
 
 const app = document.createElement('div');
 
 app.id = 'app';
-const pageState: { destroy?: () => void } = {};
-
-function renderPage(page: Page): void {
-  pageState.destroy?.();
-  pageState.destroy = undefined;
-
-  if (page === 'home') {
-    const homePage = createHomePage();
-    main.replaceChildren(homePage.content);
-    pageState.destroy = homePage.destroy;
-  } else {
-    main.replaceChildren(createLibraryPage());
-  }
+function updateNavigation(): void {
+  const path = getRoutePath();
 
   for (const link of header.querySelectorAll<HTMLAnchorElement>('[data-page]')) {
-    const isActive = link.dataset.page === page;
+    const isActive = `/${link.dataset.page}` === path;
 
     link.classList.toggle('headerNavLinkActive', isActive);
 
@@ -36,6 +25,9 @@ function renderPage(page: Page): void {
 }
 
 app.addEventListener('click', (event) => {
+  if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+    return;
+  }
   if (!(event.target instanceof Element)) {
     return;
   }
@@ -52,7 +44,7 @@ app.addEventListener('click', (event) => {
   }
 
   event.preventDefault();
-  renderPage(page);
+  navigate(`/${page}`);
   window.scrollTo(0, 0);
 });
 
@@ -61,5 +53,18 @@ const main = document.createElement('main');
 const footer = createFooter();
 
 app.prepend(header, main, footer);
-renderPage('home');
 document.body.append(app);
+
+for (const link of app.querySelectorAll<HTMLAnchorElement>('a[data-page]')) {
+  link.href = `${import.meta.env.BASE_URL}${link.dataset.page}`;
+}
+
+function renderRoute(): void {
+  router();
+  updateNavigation();
+}
+
+restoreRedirectedRoute();
+renderRoute();
+globalThis.addEventListener('popstate', renderRoute);
+globalThis.addEventListener('app:navigate', renderRoute);

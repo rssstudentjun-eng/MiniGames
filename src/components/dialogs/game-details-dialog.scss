@@ -1,5 +1,80 @@
 @use '../../styles/mixins' as *;
 
+.gameDetailsSkeleton {
+  display: grid;
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+.gameDetailsSkeletonBlock {
+  min-height: 20px;
+  border-radius: 8px;
+  background: var(--outline-variant);
+  animation: game-details-pulse 0.5s ease-in-out infinite alternate;
+}
+
+.gameDetailsSkeleton-hero {
+  height: 220px;
+  margin-inline: -24px;
+  border-radius: 0;
+}
+
+.gameDetailsSkeleton-title {
+  width: 65%;
+  height: 32px;
+}
+
+.gameDetailsSkeleton-specs {
+  height: 64px;
+}
+
+.gameDetailsSkeleton-records {
+  height: 48px;
+}
+
+.gameDetailsSkeleton-comments {
+  height: 128px;
+}
+
+.gameDetailsError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-height: 360px;
+  padding: 80px 24px 32px;
+  text-align: center;
+  justify-content: center;
+
+  .playButton {
+    max-width: 100%;
+  }
+}
+
+@keyframes game-details-pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gameDetailsSkeletonBlock {
+    animation: none;
+  }
+}
+
+.emptyMessage {
+  font-size: 24px;
+  width: 100%;
+  border-radius: 10px;
+  border: 3px solid var(--on-primary);
+  margin: 10px 0;
+  padding: 10px;
+}
+
 .gameDetailsDialog {
   width: min(600px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
@@ -196,7 +271,6 @@
   gap: 14px;
   align-items: center;
   justify-content: center;
-
   font-weight: 700;
   font-size: 14px;
   color: var(--on-primary);
