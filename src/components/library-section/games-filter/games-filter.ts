@@ -11,14 +11,21 @@ export const filterValues = [
 ] as const;
 export type GameCategory = (typeof filterValues)[number];
 
+export interface Category {
+  slug: GameCategory;
+  label: string;
+  isDefault: boolean;
+}
+
 export function createGamesFilter(
   changeCategory: (category: GameCategory) => void,
   selectedCategory: GameCategory = 'all',
+  categories: Category[] = [],
 ): HTMLElement {
   const gamesFilterWrapper = document.createElement('ul');
   gamesFilterWrapper.classList.add('gamesFilterWrapper');
 
-  for (const gamesFilterElement of filterValues) {
+  for (const category of categories) {
     const gameFilterItem = document.createElement('li');
 
     const gameFilterButton = document.createElement('button');
@@ -27,14 +34,14 @@ export function createGamesFilter(
 
     gameFilterItem.append(gameFilterButton);
 
-    gameFilterButton.textContent = gamesFilterElement;
+    gameFilterButton.textContent = category.label;
 
-    if (gamesFilterElement === selectedCategory) {
+    if (category.slug === selectedCategory) {
       gameFilterButton.classList.add('activeBtn');
     }
 
     gameFilterButton.addEventListener('click', () => {
-      changeCategory(gamesFilterElement);
+      changeCategory(category.slug);
     });
 
     gamesFilterWrapper.append(gameFilterItem);

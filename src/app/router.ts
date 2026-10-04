@@ -1,5 +1,6 @@
 import { createHomePage } from '../pages/home/home-page.ts';
 import { createLibraryPage } from '../pages/library/library-page.ts';
+import { createNotFoundPage } from '../pages/not-found/not-found-page.ts';
 import { createGameDetailsDialog } from '../components/dialogs/game-details-dialog.ts';
 import { createAuthDialog, openAuthDialog } from '../components/dialogs/auth-dialog.ts';
 import {
@@ -63,9 +64,7 @@ export function router(): void {
       main.replaceChildren(libraryPage.content);
       routerState.destroyPage = libraryPage.destroy;
     } else {
-      const notFound = document.createElement('h1');
-      notFound.textContent = '404 - Page not found';
-      main.replaceChildren(notFound);
+      main.replaceChildren(createNotFoundPage());
     }
   }
   synchronizeDialog(state);

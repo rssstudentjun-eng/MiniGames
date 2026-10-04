@@ -98,7 +98,8 @@ export function openGameDialog(slug: string): void {
 }
 
 export function openAuthentication(mode: AuthMode): void {
-  updateRouteParameters({ auth: mode, game: undefined });
+  const state = readRouteState();
+  updateRouteParameters({ auth: mode, game: undefined }, Boolean(state.auth || state.gameSlug));
 }
 
 export function closeRouteDialog(): void {

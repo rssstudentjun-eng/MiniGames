@@ -1,8 +1,12 @@
 ﻿import { createLibrarySection } from '../../components/library-section/library-section.ts';
-import { getGamesUniversal } from '../../services/api.ts';
-import type { GameCategory } from '../../components/library-section/games-filter/games-filter.ts';
+import { getCategories, getGamesUniversal } from '../../services/api.ts';
+import type {
+  Category,
+  GameCategory,
+} from '../../components/library-section/games-filter/games-filter.ts';
 import type { SortingValue } from '../../components/library-section/sorting/sorting.ts';
 import { updateRouteParameters, type LibraryState } from '../../app/navigation.ts';
+import { showSnackbar } from '../../components/snackbar/snackbar.ts';
 
 function changeCategory(nextCategory: GameCategory): void {
   updateRouteParameters({ category: nextCategory, page: '1' });
@@ -20,10 +24,11 @@ export function createLibraryPage(state: LibraryState) {
   const page = document.createDocumentFragment();
   const librarySectionContainer = document.createElement('div');
   const { category, sort: sortValue, page: currentPage } = state;
+  let categories: Category[] = [];
   let controller: AbortController | undefined;
   let sectionController: AbortController | undefined;
 
-  async function loadGames(): Promise<void> {
+  async function loadGames(isRetry = false): Promise<void> {
     controller?.abort();
     const requestController = new AbortController();
     controller = requestController;
@@ -38,12 +43,24 @@ export function createLibraryPage(state: LibraryState) {
         category,
         sortValue,
         changePaginationPage,
-        () => void loadGames(),
+        () => void loadGames(true),
         sectionController.signal,
+        categories,
       ).element,
     );
 
     try {
+      const result = await getCategories(requestController.signal);
+      if (requestController.signal.aborted) return;
+      categories = result.data;
+      const defaultCategory = categories.find((item) => item.isDefault)?.slug ?? 'all';
+      if (
+        category !== defaultCategory &&
+        !new URLSearchParams(globalThis.location.search).has('category')
+      ) {
+        updateRouteParameters({ category: defaultCategory, page: '1' }, true);
+        return;
+      }
       const games = await getGamesUniversal(requestController.signal, {
         category,
         page: String(currentPage),
@@ -56,6 +73,7 @@ export function createLibraryPage(state: LibraryState) {
         updateRouteParameters({ page: String(returnedPage) }, true);
         return;
       }
+      if (isRetry) showSnackbar('Library loaded.', 'success');
       sectionController.abort();
       sectionController = new AbortController();
       librarySectionContainer.replaceChildren(
@@ -66,12 +84,14 @@ export function createLibraryPage(state: LibraryState) {
           category,
           sortValue,
           changePaginationPage,
-          () => void loadGames(),
+          () => void loadGames(true),
           sectionController.signal,
+          categories,
         ).element,
       );
     } catch {
       if (requestController.signal.aborted) return;
+      showSnackbar('Could not load the library.', 'error');
       sectionController.abort();
       sectionController = new AbortController();
       librarySectionContainer.replaceChildren(
@@ -82,8 +102,9 @@ export function createLibraryPage(state: LibraryState) {
           category,
           sortValue,
           changePaginationPage,
-          () => void loadGames(),
+          () => void loadGames(true),
           sectionController.signal,
+          categories,
         ).element,
       );
     }
