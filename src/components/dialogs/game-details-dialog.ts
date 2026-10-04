@@ -8,10 +8,11 @@ import cupImageIcon from '../../assets/images/cup.png';
 import medal_1 from '../../assets/images/medal_1.png';
 import medal_2 from '../../assets/images/medal_2.png';
 import medal_3 from '../../assets/images/medal_3.png';
-import { getGameComments, getGameDetails } from '../../services/api.ts';
+import { ApiError, getGameComments, getGameDetails } from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
 import { formatCommentTime } from '../../utils/format-comment-time.ts';
 import { GameComment, GameDetails } from './types/dialog-types.ts';
+import { showSnackbar } from '../snackbar/snackbar.ts';
 
 const medals = [medal_1, medal_2, medal_3];
 
@@ -32,37 +33,41 @@ interface GameDialogData {
   gameData: GameDetails;
   comments: GameComment[];
   totalComments: number;
+  commentsError?: boolean;
 }
 
 export async function fetchGameDetails(
   slug: string,
   signal?: AbortSignal,
 ): Promise<GameDialogData | undefined> {
-  const [{ data: gameData }, { data: comments, meta }] = await Promise.all([
-    getGameDetails(slug, signal),
-    getGameComments(slug, signal),
-  ]);
-
+  const { data: gameData } = await getGameDetails(slug, signal);
   if (signal?.aborted) return;
-
+  if (!gameData) throw new ApiError(404);
   if (
-    !gameData ||
-    !meta ||
     !gameData.name ||
     !gameData.fullDescription ||
     !gameData.specs ||
-    !Array.isArray(gameData.topRecords) ||
-    !Array.isArray(comments) ||
-    !Number.isFinite(meta.totalComments)
+    !Array.isArray(gameData.topRecords)
   ) {
     throw new Error('Game details are unavailable');
   }
 
-  return { gameData, comments, totalComments: meta.totalComments };
+  try {
+    const { data: comments, meta } = await getGameComments(slug, signal);
+    if (signal?.aborted) return;
+    if (!Array.isArray(comments) || !Number.isFinite(meta?.totalComments)) {
+      throw new TypeError('Comments are unavailable');
+    }
+    return { gameData, comments, totalComments: meta.totalComments };
+  } catch {
+    if (signal?.aborted) return;
+    showSnackbar('Could not load comments.', 'error');
+    return { gameData, comments: [], totalComments: 0, commentsError: true };
+  }
 }
 
-function createGameDetailsContent(result: GameDialogData) {
-  const { gameData, comments, totalComments } = result;
+function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
+  const { gameData, comments, totalComments, commentsError } = result;
 
   const dialogContent = document.createElement('div');
   dialogContent.classList.add('gameDetailsDialogContent');
@@ -71,7 +76,9 @@ function createGameDetailsContent(result: GameDialogData) {
   cardImage.classList.add('cardImage');
   cardImage.alt = gameData.name;
 
-  const imageUrl = getGameImageUrl(`/assets/images/games/${gameData.slug}-card.jpg`);
+  const imageUrl =
+    getGameImageUrl(gameData.heroImage) ??
+    getGameImageUrl(`/assets/images/games/${gameData.slug}-card.jpg`);
 
   if (imageUrl) {
     cardImage.src = imageUrl;
@@ -187,7 +194,7 @@ function createGameDetailsContent(result: GameDialogData) {
 
   const commentsBlockTitle = document.createElement('h3');
   commentsBlockTitle.classList.add('commentsBlockTitle');
-  commentsBlockTitle.textContent = `Comments (${totalComments})`;
+  commentsBlockTitle.textContent = commentsError ? 'Comments' : `Comments (${totalComments})`;
 
   const commentInputBlock = document.createElement('div');
   commentInputBlock.classList.add('commentInputBlock');
@@ -257,7 +264,17 @@ function createGameDetailsContent(result: GameDialogData) {
 
   commentsBlock.append(commentsBlockTitle, commentInputBlock, commentsList);
 
-  if (comments.length === 0) {
+  if (commentsError) {
+    const message = document.createElement('p');
+    message.setAttribute('role', 'alert');
+    message.textContent = 'Comments could not be loaded. Please try again.';
+    const retryButton = document.createElement('button');
+    retryButton.type = 'button';
+    retryButton.classList.add('playButton');
+    retryButton.textContent = 'Try again';
+    retryButton.addEventListener('click', onRetry);
+    commentsBlock.append(message, retryButton);
+  } else if (comments.length === 0) {
     const emptyMessage = document.createElement('p');
     emptyMessage.classList.add('emptyMessage');
     emptyMessage.textContent = 'Comments list is empty';
@@ -324,7 +341,7 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
   gameDetailsDialog.append(closeButton, content);
   const requestState: { controller?: AbortController } = {};
 
-  async function loadContent() {
+  async function loadContent(isRetry = false) {
     requestState.controller?.abort();
     const controller = new AbortController();
     requestState.controller = controller;
@@ -334,27 +351,32 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
     try {
       const result = await fetchGameDetails(slug, controller.signal);
       if (!result || controller.signal.aborted) return;
-      content.replaceChildren(createGameDetailsContent(result));
+      content.replaceChildren(createGameDetailsContent(result, () => void loadContent(true)));
+      if (isRetry && !result.commentsError) showSnackbar('Game details loaded.', 'success');
       gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');
     } catch (error) {
       if (controller.signal.aborted) return;
       controller.abort();
-      console.error('Error fetching game details:', error);
+      const isNotFound = error instanceof ApiError && error.status === 404;
+      showSnackbar(isNotFound ? 'Game Not Found.' : 'Could not load game details.', 'error');
       const errorBlock = document.createElement('div');
       errorBlock.classList.add('gameDetailsError');
       errorBlock.setAttribute('role', 'alert');
       const title = document.createElement('h2');
-      title.textContent = 'No data available';
+      title.textContent = isNotFound ? 'Game Not Found' : 'Game details could not be loaded';
       const message = document.createElement('p');
-      message.textContent = 'Please check your connection and try again.';
+      message.textContent = isNotFound
+        ? 'The requested game does not exist.'
+        : 'Please check your connection and try again.';
       const retryButton = document.createElement('button');
       retryButton.type = 'button';
       retryButton.classList.add('playButton');
       retryButton.textContent = 'Try again';
       retryButton.addEventListener('click', () => {
-        void loadContent();
+        void loadContent(true);
       });
-      errorBlock.append(title, message, retryButton);
+      errorBlock.append(title, message);
+      if (!isNotFound) errorBlock.append(retryButton);
       content.replaceChildren(errorBlock);
     } finally {
       if (requestState.controller === controller) {
@@ -365,8 +387,14 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
 
   gameDetailsDialog.addEventListener('click', (event) => {
     const target = event.target;
+    const rect = gameDetailsDialog.getBoundingClientRect();
+    const isOutside =
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom;
     if (
-      target === gameDetailsDialog ||
+      (target === gameDetailsDialog && isOutside) ||
       (target instanceof Element && target.closest('.gameDetailsDialogClose'))
     ) {
       requestState.controller?.abort();

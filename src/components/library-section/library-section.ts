@@ -1,6 +1,6 @@
 import './library-section.scss';
 import { createGamesFilter } from './games-filter/games-filter.ts';
-import type { GameCategory } from './games-filter/games-filter.ts';
+import type { Category, GameCategory } from './games-filter/games-filter.ts';
 import { createSortingElement, SortingValue, sortingValues } from './sorting/sorting.ts';
 import { createGameCardsWrapper } from './game-card-wrapper/game-card-wrapper.ts';
 import { createPagination } from './pagination/pagination.ts';
@@ -15,6 +15,7 @@ export function createLibrarySection(
   changePaginationPage: (newPage: number) => void,
   onRetry?: () => void,
   signal?: AbortSignal,
+  categories: Category[] = [],
 ) {
   const data = typeof gamesData === 'string' ? gamesData : gamesData.data;
 
@@ -38,7 +39,7 @@ export function createLibrarySection(
   middleSection.classList.add('middleSection');
 
   middleSection.append(
-    createGamesFilter(changeCategory, selectedCategory),
+    createGamesFilter(changeCategory, selectedCategory, categories),
     createSortingElement(sortValue, changeSortValue, signal),
   );
 

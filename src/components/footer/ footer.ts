@@ -99,6 +99,7 @@ export function createFooter(): HTMLElement {
   const logoFooter = document.createElement('a');
   logoFooter.classList.add('headerLogoWrap');
   logoFooter.href = '/';
+  logoFooter.dataset.page = 'home';
 
   const logoFooterIcon = document.createElement('img');
   logoFooterIcon.classList.add('headerLogoIcon');

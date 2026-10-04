@@ -27,7 +27,9 @@ export function createGameCardsWrapper(
     const text = document.createElement('p');
     text.setAttribute('role', gamesData === 'error' ? 'alert' : 'status');
     text.textContent =
-      gamesData === 'error' ? "The games didn't load. Please try again." : 'No data';
+      gamesData === 'error'
+        ? "The games didn't load. Please try again."
+        : 'Data Not Found. No games match the selected filters.';
     message.append(text);
 
     if (gamesData === 'error') {
