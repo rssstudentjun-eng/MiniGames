@@ -34,7 +34,10 @@ function synchronizeDialog(state: ReturnType<typeof readRouteState>): void {
   routerState.dialogKey = dialogKey;
   if (!dialogKey) return;
   const dialog = state.auth
-    ? createAuthDialog({ onClose: closeRouteDialog, onModeChange: openAuthentication })
+    ? createAuthDialog({
+        onClose: closeRouteDialog,
+        onModeChange: openAuthentication,
+      })
     : createGameDetailsDialog(state.gameSlug!, closeRouteDialog);
   routerState.dialog = dialog;
   document.body.append(dialog);
