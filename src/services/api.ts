@@ -1,10 +1,10 @@
 import type { GamesData } from '../components/library-section/types/game.ts';
 import type { Category } from '../components/library-section/games-filter/games-filter.ts';
-import type { TopPlayersResponse } from '../components/leaderboard-table-section/leaderboard-table-section.ts';
 import {
   GameCommentsResponse,
   GameDetailsResponse,
 } from '../components/dialogs/types/dialog-types.ts';
+import { TopPlayersResponse } from '../components/leaderboard-table-section/types/leaderboard-table-types.ts';
 
 export const baseUrl = 'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com/api/';
 
