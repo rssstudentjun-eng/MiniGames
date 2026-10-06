@@ -1,11 +1,11 @@
 import './auth-dialog.scss';
-
 import googleIcon from '../../assets/icons/googleIcon.svg';
 import lockIcon from '../../assets/icons/lockIcon.svg';
 import mailIcon from '../../assets/icons/mailIcon.svg';
 import personIcon from '../../assets/icons/personIcon.svg';
 import visibilityIcon from '../../assets/icons/visibilityIcon.svg';
 import closeIcon from '../../assets/icons/closeIcon.svg';
+import { AuthFieldName, validateAuthField } from '../../utils/auth-validation.ts';
 
 export type AuthMode = 'login' | 'register';
 
@@ -18,6 +18,71 @@ type FieldOptions = {
   autocomplete: string;
   showPasswordButton?: boolean;
 };
+
+// =====
+function validationForm(form: HTMLFormElement, mode: AuthMode): void {
+  const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  if (!submitButton) return;
+
+  const inputs = [...form.querySelectorAll<HTMLInputElement>('input')];
+  const passwordInput = inputs.find((input) => input.name === 'password');
+  const touchedFields = new Set<string>();
+
+  const fields = inputs.map((input) => {
+    const error = document.createElement('span');
+    error.className = 'authError';
+    error.id = `${input.id}-error`;
+    error.hidden = true;
+    error.setAttribute('aria-live', 'polite');
+
+    input.required = true;
+    input.setAttribute('aria-describedby', error.id);
+    input.closest('.authField')?.append(error);
+
+    return { input, error };
+  });
+
+  function updateValidation(): void {
+    let isFormValid = true;
+
+    for (const { input, error } of fields) {
+      const message = validateAuthField(
+        input.name as AuthFieldName,
+        input.value,
+        mode,
+        passwordInput?.value ?? '',
+      );
+
+      if (message) isFormValid = false;
+
+      const shouldShowError = touchedFields.has(input.name) && message !== '';
+
+      error.textContent = shouldShowError ? message : '';
+      error.hidden = !shouldShowError;
+      input.setAttribute('aria-invalid', String(shouldShowError));
+    }
+
+    if (!submitButton) return;
+
+    submitButton.disabled = !isFormValid;
+  }
+
+  for (const { input } of fields) {
+    function handleFieldChange(): void {
+      touchedFields.add(input.name);
+      updateValidation();
+    }
+
+    input.addEventListener('input', handleFieldChange);
+    input.addEventListener('change', handleFieldChange);
+    input.addEventListener('blur', handleFieldChange);
+  }
+
+  updateValidation();
+}
+
+// =====
 
 function createButton(text: string, className: string): HTMLButtonElement {
   const button = document.createElement('button');
@@ -155,7 +220,7 @@ export function createAuthDialog(options: {
       label: 'Password',
       name: 'password',
       type: 'password',
-      placeholder: '••••••••',
+      placeholder: '••••••',
       icon: lockIcon,
       autocomplete: 'current-password',
       showPasswordButton: true,
@@ -167,6 +232,7 @@ export function createAuthDialog(options: {
     submitButton.type = 'submit';
 
     form.append(emailField, passwordField, forgotPasswordButton, submitButton);
+    validationForm(form, 'login');
 
     googleButtonText.textContent = 'Continue with Google';
 
@@ -229,6 +295,7 @@ export function createAuthDialog(options: {
     submitButton.type = 'submit';
 
     form.append(usernameField, emailField, passwordField, confirmPasswordField, submitButton);
+    validationForm(form, 'register');
 
     googleButtonText.textContent = 'Sign up with Google';
 
