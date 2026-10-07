@@ -1,6 +1,6 @@
 import './auth-dialog.scss';
 import { FirebaseError } from 'firebase/app';
-import { loginUser, registerUser } from '../../services/auth.ts';
+import { loginUser, loginWithGoogle, registerUser } from '../../services/auth.ts';
 import { showSnackbar } from '../snackbar/snackbar.ts';
 import googleIcon from '../../assets/icons/googleIcon.svg';
 import lockIcon from '../../assets/icons/lockIcon.svg';
@@ -269,6 +269,48 @@ export function createAuthDialog(options: {
   const googleButtonText = document.createElement('span');
 
   googleButton.append(createIcon(googleIcon), googleButtonText);
+
+  googleButton.addEventListener('click', async () => {
+    if (isPending) return;
+
+    const previousText = googleButtonText.textContent;
+    setPending(true);
+    googleButtonText.textContent = 'Signing in...';
+
+    try {
+      await loginWithGoogle();
+      showSnackbar('You are signed in.', 'success');
+      if (dialog.isConnected) options.onClose();
+    } catch (error) {
+      let message = 'Google sign-in failed. Please try again.';
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/popup-closed-by-user': {
+            message = 'Google sign-in was cancelled.';
+            break;
+          }
+          case 'auth/popup-blocked': {
+            message = 'Allow pop-ups in your browser and try again.';
+            break;
+          }
+          case 'auth/network-request-failed': {
+            message = 'Check your connection and try again.';
+            break;
+          }
+          default: {
+            message = `Google sign-in failed: ${error.code}`;
+          }
+        }
+      }
+
+      showSnackbar(message, 'error');
+    } finally {
+      setPending(false);
+      googleButtonText.textContent = previousText;
+      updateFormValidation?.();
+    }
+  });
 
   const footer = document.createElement('p');
   footer.className = 'authFooter';
