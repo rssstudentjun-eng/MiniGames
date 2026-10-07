@@ -4,6 +4,7 @@ import {
 } from '../components/library-section/games-filter/games-filter.ts';
 import { sortingValues, type SortingValue } from '../components/library-section/sorting/sorting.ts';
 import type { AuthMode } from '../components/dialogs/auth-dialog.ts';
+import { hasActiveSession } from '../state/session.ts';
 
 export interface LibraryState {
   category: GameCategory;
@@ -59,6 +60,7 @@ function notifyNavigation(): void {
 }
 
 export function navigate(path: string): void {
+  hasActiveSession();
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   const url = new URL(`${base}${path}`, globalThis.location.origin);
   if (url.href === globalThis.location.href) return;
@@ -70,6 +72,7 @@ export function updateRouteParameters(
   changes: Record<string, string | undefined>,
   shouldReplace = false,
 ): void {
+  hasActiveSession();
   const url = new URL(globalThis.location.href);
   const entries = Object.entries(changes);
   for (const [key, value] of entries) {
@@ -103,6 +106,7 @@ export function openAuthentication(mode: AuthMode): void {
 }
 
 export function closeRouteDialog(): void {
+  hasActiveSession();
   const depth = globalThis.history.state?.dialogDepth;
   if (Number.isSafeInteger(depth) && depth > 0) {
     history.go(-depth);
