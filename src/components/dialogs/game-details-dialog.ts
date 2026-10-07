@@ -13,6 +13,8 @@ import { getGameImageUrl } from '../../utils/game-image.ts';
 import { formatCommentTime } from '../../utils/format-comment-time.ts';
 import { GameComment, GameDetails } from './types/dialog-types.ts';
 import { showSnackbar } from '../snackbar/snackbar.ts';
+import { hasActiveSession, session } from '../../state/session.ts';
+import { getProfileInitials, getProfileName } from '../header/header.ts';
 
 const medals = [medal_1, medal_2, medal_3];
 
@@ -341,6 +343,31 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
   gameDetailsDialog.append(closeButton, content);
   const requestState: { controller?: AbortController } = {};
 
+  function updateProfile(): void {
+    const avatar = content.querySelector('.userFirstLetterName');
+    if (avatar) {
+      avatar.textContent = session.profile
+        ? getProfileInitials(getProfileName(session.profile))
+        : 'U';
+    }
+    gameDetailsDialog.dataset.authenticated = String(Boolean(session.profile));
+  }
+
+  gameDetailsDialog.addEventListener('app:profile', updateProfile);
+  gameDetailsDialog.addEventListener(
+    'click',
+    (event) => {
+      if (!(event.target instanceof Element)) return;
+      if (!event.target.closest('.addFavoritesButton, .sendCommentButton, .commentLikesBlock'))
+        return;
+      if (hasActiveSession()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      globalThis.dispatchEvent(new Event('app:require-auth'));
+    },
+    { capture: true },
+  );
+
   async function loadContent(isRetry = false) {
     requestState.controller?.abort();
     const controller = new AbortController();
@@ -352,6 +379,7 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
       const result = await fetchGameDetails(slug, controller.signal);
       if (!result || controller.signal.aborted) return;
       content.replaceChildren(createGameDetailsContent(result, () => void loadContent(true)));
+      updateProfile();
       if (isRetry && !result.commentsError) showSnackbar('Game details loaded.', 'success');
       gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');
     } catch (error) {

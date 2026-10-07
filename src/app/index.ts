@@ -1,8 +1,9 @@
 import '../styles/globals.scss';
 import { createHeader } from '../components/header/header';
 import { createFooter } from '../components/footer/ footer.ts';
-import { getRoutePath, navigate, router } from './router';
+import { getRoutePath, navigate, router, setupSessionDialogs } from './router';
 import { restoreRedirectedRoute } from './navigation.ts';
+import { hasActiveSession, restoreSession } from '../state/session.ts';
 
 export type Page = 'home' | 'library';
 
@@ -65,6 +66,14 @@ function renderRoute(): void {
 }
 
 restoreRedirectedRoute();
+restoreSession();
+setupSessionDialogs();
 renderRoute();
+
+globalThis.addEventListener('focus', () => hasActiveSession());
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) hasActiveSession();
+});
+globalThis.addEventListener('storage', () => hasActiveSession());
 globalThis.addEventListener('popstate', renderRoute);
 globalThis.addEventListener('app:navigate', renderRoute);
