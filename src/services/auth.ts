@@ -3,15 +3,13 @@ import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signOut,
   updateProfile,
 } from 'firebase/auth';
 import { auth } from './firebase.ts';
-import { setSessionProfile, waitForSessionSignOut } from '../state/session.ts';
+import { endSession, setSessionProfile, waitForSessionSignOut } from '../state/session.ts';
 
 export async function logoutUser(): Promise<void> {
-  await signOut(auth);
-  setSessionProfile(undefined);
+  await endSession();
 }
 
 export async function registerUser(email: string, password: string, username: string) {
