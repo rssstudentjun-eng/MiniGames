@@ -50,12 +50,21 @@ export function isValidSession(value: unknown): value is SessionProfile {
 }
 
 function clearSession(isExpired = false): void {
-  setSessionProfile(undefined);
-  sessionState.pendingSignOut = signOutOfFirebase();
+  void signOutOfFirebase();
   if (isExpired) showSnackbar('Your session has expired. Please sign in again.', 'error');
 }
 
-export function waitForSessionSignOut(): Promise<void> {
+export async function waitForSessionSignOut(): Promise<void> {
+  try {
+    await sessionState.pendingSignOut;
+  } catch {
+    return;
+  }
+}
+
+export function endSession(): Promise<void> {
+  setSessionProfile(undefined);
+  sessionState.pendingSignOut = signOut(auth);
   return sessionState.pendingSignOut;
 }
 
@@ -93,7 +102,7 @@ export function restoreSession(): void {
 
 async function signOutOfFirebase(): Promise<void> {
   try {
-    await signOut(auth);
+    await endSession();
   } catch {
     showSnackbar('Could not sign out of Firebase. Please try again.', 'error');
   }

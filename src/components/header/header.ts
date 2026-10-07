@@ -169,28 +169,42 @@ export function createHeader(): HTMLElement {
   logoutButton.type = 'button';
   logoutButton.textContent = 'Logout';
   logoutButton.classList.add('headerBtn', 'logInBtn');
+  const desktopLogoutButton = logoutButton.cloneNode(true) as HTMLButtonElement;
+  desktopLogoutButton.classList.replace('logInBtn', 'logoutBtn');
 
-  logoutButton.addEventListener('click', async () => {
-    if (logoutButton.disabled) return;
+  async function handleLogout(): Promise<void> {
+    if (logoutButton.disabled || desktopLogoutButton.disabled) return;
     logoutButton.disabled = true;
+    desktopLogoutButton.disabled = true;
+    logoutButton.textContent = 'Signing out...';
+    desktopLogoutButton.textContent = 'Signing out...';
+    const wasMobileMenuOpen = mobileMenu.classList.contains('mobileMenuOpen');
 
     try {
-      await logoutUser();
+      const request = logoutUser();
       closeMobileMenu();
-      menuButton.focus();
+      if (wasMobileMenuOpen) menuButton.focus();
+      else logInButton.focus();
+      await request;
       showSnackbar('You are signed out.', 'success');
     } catch {
       showSnackbar('Sign-out failed. Please try again.', 'error');
     } finally {
       logoutButton.disabled = false;
+      desktopLogoutButton.disabled = false;
+      logoutButton.textContent = 'Logout';
+      desktopLogoutButton.textContent = 'Logout';
     }
-  });
+  }
+
+  logoutButton.addEventListener('click', handleLogout);
+  desktopLogoutButton.addEventListener('click', handleLogout);
 
   mobileMenu.append(mobileLogo, mobileNavList, mobileLogInButton, mobileSignUpButton);
 
   function updateProfile(): void {
     if (session.profile) {
-      buttonsWrapper.replaceChildren(createProfile(session.profile));
+      buttonsWrapper.replaceChildren(createProfile(session.profile), desktopLogoutButton);
       mobileLogInButton.remove();
       mobileSignUpButton.remove();
       mobileMenu.append(logoutButton);
