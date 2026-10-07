@@ -1,6 +1,55 @@
 import headerLogoUrl from '../../assets/icons/headerLogo.svg';
 import './header.scss';
 import { openAuthentication } from '../../app/navigation.ts';
+import { session, type SessionProfile } from '../../state/session.ts';
+import { logoutUser } from '../../services/auth.ts';
+import { showSnackbar } from '../snackbar/snackbar.ts';
+
+export function getProfileName(profile: SessionProfile): string {
+  return profile.displayName?.trim() || profile.email?.split('@', 1)[0]?.trim() || 'Player';
+}
+
+export function getProfileInitials(name: string): string {
+  const words = name.trim().split(/\s+/u, 2);
+  let initials = '';
+
+  for (const word of words) {
+    const character = word.match(/[\p{L}\p{N}]/u);
+
+    if (character) {
+      initials += character[0].toUpperCase();
+    }
+  }
+
+  if (!initials) return '?';
+
+  return initials;
+}
+
+function createProfile(profile: SessionProfile): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'headerProfile';
+  const name = getProfileName(profile);
+  const avatar = document.createElement('span');
+  avatar.className = 'headerAvatar';
+  avatar.textContent = getProfileInitials(name);
+
+  if (profile.avatarUrl) {
+    const image = document.createElement('img');
+    image.alt = '';
+    image.addEventListener('error', () => {
+      avatar.textContent = getProfileInitials(name);
+    });
+    image.src = profile.avatarUrl;
+    avatar.replaceChildren(image);
+  }
+
+  const label = document.createElement('span');
+  label.className = 'headerProfileName';
+  label.textContent = name;
+  container.append(avatar, label);
+  return container;
+}
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -114,10 +163,46 @@ export function createHeader(): HTMLElement {
   const mobileLogo = logo.cloneNode(true) as HTMLAnchorElement;
   const mobileNavList = createNavList('mobileNavList');
 
-  const mobileLogInButton = logInButton.cloneNode(true);
-  const mobileSignUpButton = signUpButton.cloneNode(true);
+  const mobileLogInButton = logInButton.cloneNode(true) as HTMLButtonElement;
+  const mobileSignUpButton = signUpButton.cloneNode(true) as HTMLButtonElement;
+  const logoutButton = document.createElement('button');
+  logoutButton.type = 'button';
+  logoutButton.textContent = 'Logout';
+  logoutButton.classList.add('headerBtn', 'logInBtn');
+
+  logoutButton.addEventListener('click', async () => {
+    if (logoutButton.disabled) return;
+    logoutButton.disabled = true;
+
+    try {
+      await logoutUser();
+      closeMobileMenu();
+      menuButton.focus();
+      showSnackbar('You are signed out.', 'success');
+    } catch {
+      showSnackbar('Sign-out failed. Please try again.', 'error');
+    } finally {
+      logoutButton.disabled = false;
+    }
+  });
 
   mobileMenu.append(mobileLogo, mobileNavList, mobileLogInButton, mobileSignUpButton);
+
+  function updateProfile(): void {
+    if (session.profile) {
+      buttonsWrapper.replaceChildren(createProfile(session.profile));
+      mobileLogInButton.remove();
+      mobileSignUpButton.remove();
+      mobileMenu.append(logoutButton);
+    } else {
+      logoutButton.remove();
+      buttonsWrapper.replaceChildren(logInButton, signUpButton);
+      mobileMenu.append(mobileLogInButton, mobileSignUpButton);
+    }
+  }
+
+  globalThis.addEventListener('app:profile', updateProfile);
+  updateProfile();
 
   menuButton.setAttribute('aria-expanded', 'false');
 
