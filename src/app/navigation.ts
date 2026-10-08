@@ -5,6 +5,7 @@ import {
 import { sortingValues, type SortingValue } from '../components/library-section/sorting/sorting.ts';
 import type { AuthMode } from '../components/dialogs/auth-dialog.ts';
 import { hasActiveSession } from '../state/session.ts';
+import { showSnackbar } from '../components/snackbar/snackbar.ts';
 
 export interface LibraryState {
   category: GameCategory;
@@ -59,10 +60,25 @@ function notifyNavigation(): void {
   globalThis.dispatchEvent(new Event('app:navigate'));
 }
 
+export function shouldBlockAuth(url = new URL(globalThis.location.href)): boolean {
+  if (!hasActiveSession()) return false;
+
+  if (url.searchParams.has('auth')) {
+    url.searchParams.delete('auth');
+    history.replaceState(history.state, '', url);
+  }
+  showSnackbar('You are already signed in.', 'error');
+  return true;
+}
+
 export function navigate(path: string): void {
   hasActiveSession();
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   const url = new URL(`${base}${path}`, globalThis.location.origin);
+  if (url.searchParams.has('auth') && shouldBlockAuth(url)) {
+    notifyNavigation();
+    return;
+  }
   if (url.href === globalThis.location.href) return;
   history.pushState({}, '', url);
   notifyNavigation();
@@ -72,6 +88,10 @@ export function updateRouteParameters(
   changes: Record<string, string | undefined>,
   shouldReplace = false,
 ): void {
+  if (changes.auth !== undefined && shouldBlockAuth()) {
+    notifyNavigation();
+    return;
+  }
   hasActiveSession();
   const url = new URL(globalThis.location.href);
   const entries = Object.entries(changes);
@@ -101,6 +121,10 @@ export function openGameDialog(slug: string): void {
 }
 
 export function openAuthentication(mode: AuthMode): void {
+  if (shouldBlockAuth()) {
+    notifyNavigation();
+    return;
+  }
   const state = readRouteState();
   updateRouteParameters({ auth: mode, game: undefined }, Boolean(state.auth || state.gameSlug));
 }
