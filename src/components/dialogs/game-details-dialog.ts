@@ -12,6 +12,7 @@ import {
   ApiError,
   getGameComments,
   getGameDetails,
+  sendGameComment,
   toggleGameFavoriteApi,
 } from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
@@ -81,7 +82,27 @@ export async function fetchGameDetails(
   }
 }
 
-function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
+// ======
+export async function sendComment(
+  slug: string,
+  userEmail: string,
+  authorName: string,
+  text: string,
+): Promise<GameComment | undefined> {
+  try {
+    const response = await sendGameComment(slug, userEmail, authorName, text);
+    return response.data;
+  } catch {
+    showSnackbar('Could not send comment.', 'error');
+  }
+}
+
+// ======
+function createGameDetailsContent(
+  result: GameDialogData,
+  onRetry: () => void,
+  onCommentSent: () => Promise<void>,
+) {
   const { gameData, comments, totalComments, commentsError } = result;
 
   const dialogContent = document.createElement('div');
@@ -218,10 +239,11 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
   const userFirstLetterName = document.createElement('p');
   userFirstLetterName.classList.add('userFirstLetterName');
   userFirstLetterName.textContent = 'U';
-
+  // =====
   const inputComment = document.createElement('textarea');
   inputComment.classList.add('inputComment');
   inputComment.placeholder = 'Write a comment...';
+  // =====
 
   const sendCommentButton = document.createElement('button');
   sendCommentButton.classList.add('sendCommentButton');
@@ -229,6 +251,41 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
   sendCommentButtonImg.alt = 'Send comment';
   sendCommentButtonImg.src = sendCommentIcon;
   sendCommentButton.append(sendCommentButtonImg);
+  // ======
+
+  sendCommentButton.addEventListener('click', async () => {
+    if (sendCommentButton.disabled) return;
+
+    if (!hasActiveSession()) {
+      showSnackbar('Please sign in to send a comment.', 'error');
+      globalThis.dispatchEvent(new Event('app:require-auth'));
+      return;
+    }
+    const profile = session.profile;
+    if (!profile?.email) return;
+
+    const text = inputComment.value.trim();
+    if (!text) return;
+
+    let authorName = getProfileName(profile);
+
+    if (authorName.length < 2 || authorName.length > 30) {
+      authorName = 'Player';
+    }
+
+    sendCommentButton.disabled = true;
+    try {
+      const comment = await sendComment(gameData.slug, profile.email, authorName, text);
+      if (!comment) return;
+      inputComment.value = '';
+      await onCommentSent();
+    } catch {
+      showSnackbar('Could not send comment.', 'error');
+    } finally {
+      sendCommentButton.disabled = false;
+    }
+  });
+  // ======
 
   commentInputBlock.append(userFirstLetterName, inputComment, sendCommentButton);
 
@@ -476,7 +533,13 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
     try {
       const result = await fetchGameDetails(slug, controller.signal);
       if (!result || controller.signal.aborted) return;
-      content.replaceChildren(createGameDetailsContent(result, () => void loadContent(true)));
+      content.replaceChildren(
+        createGameDetailsContent(
+          result,
+          () => void loadContent(true),
+          () => loadContent(),
+        ),
+      );
       updateProfile();
       if (isRetry && !result.commentsError) showSnackbar('Game details loaded.', 'success');
       gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');

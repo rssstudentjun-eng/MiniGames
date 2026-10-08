@@ -1,6 +1,7 @@
 import type { GamesData } from '../components/library-section/types/game.ts';
 import type { Category } from '../components/library-section/games-filter/games-filter.ts';
 import {
+  GameCommentPost,
   GameCommentsResponse,
   GameDetailsResponse,
   GameFavoriteToggleResponse,
@@ -126,5 +127,25 @@ export async function toggleGameFavoriteApi(
     throw new ApiError(response.status);
   }
 
+  return response.json();
+}
+
+export async function sendGameComment(
+  slug: string,
+  userEmail: string,
+  authorName: string,
+  text: string,
+): Promise<GameCommentPost> {
+  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userEmail,
+      authorName,
+      text,
+    }),
+  });
   return response.json();
 }
