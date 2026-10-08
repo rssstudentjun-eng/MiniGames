@@ -96,8 +96,10 @@ export async function getGameDetails(
 export async function getGameComments(
   slug: string,
   signal?: AbortSignal,
+  userEmail?: string,
 ): Promise<GameCommentsResponse> {
   const parameters = new URLSearchParams({ limit: '3', sort: 'newest' });
+  if (userEmail) parameters.set('userEmail', userEmail);
   const response = await fetch(
     `${baseUrl}games/${encodeURIComponent(slug)}/comments?${parameters}`,
     { signal },
@@ -147,5 +149,7 @@ export async function sendGameComment(
       text,
     }),
   });
+  if (!response.ok) throw new ApiError(response.status);
+  if (response.status !== 201) throw new Error('Comment result is unknown');
   return response.json();
 }

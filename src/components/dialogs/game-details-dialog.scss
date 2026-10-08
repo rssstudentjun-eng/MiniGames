@@ -324,6 +324,9 @@
   padding: 6px 16px;
   width: 80%;
   min-height: 48px;
+  max-height: var(--size-15);
+  box-sizing: border-box;
+  overflow-y: hidden;
   background: var(--white);
   font: inherit;
   font-size: 14px;
