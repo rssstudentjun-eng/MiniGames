@@ -48,3 +48,11 @@ export interface GameCommentsResponse {
   data: GameComment[];
   meta: GameCommentsMeta;
 }
+
+export interface GameFavoriteToggleResponse {
+  data: {
+    gameSlug: string;
+    isFavorited: boolean;
+    likesCount: number;
+  };
+}

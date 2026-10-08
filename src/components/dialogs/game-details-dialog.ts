@@ -8,7 +8,12 @@ import cupImageIcon from '../../assets/images/cup.png';
 import medal_1 from '../../assets/images/medal_1.png';
 import medal_2 from '../../assets/images/medal_2.png';
 import medal_3 from '../../assets/images/medal_3.png';
-import { ApiError, getGameComments, getGameDetails } from '../../services/api.ts';
+import {
+  ApiError,
+  getGameComments,
+  getGameDetails,
+  toggleGameFavoriteApi,
+} from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
 import { formatCommentTime } from '../../utils/format-comment-time.ts';
 import { GameComment, GameDetails } from './types/dialog-types.ts';
@@ -36,13 +41,15 @@ interface GameDialogData {
   comments: GameComment[];
   totalComments: number;
   commentsError?: boolean;
+  profile?: typeof session.profile;
 }
 
 export async function fetchGameDetails(
   slug: string,
   signal?: AbortSignal,
 ): Promise<GameDialogData | undefined> {
-  const { data: gameData } = await getGameDetails(slug, signal);
+  const profile = hasActiveSession() ? session.profile : undefined;
+  const { data: gameData } = await getGameDetails(slug, signal, profile?.email);
   if (signal?.aborted) return;
   if (!gameData) throw new ApiError(404);
   if (
@@ -60,11 +67,17 @@ export async function fetchGameDetails(
     if (!Array.isArray(comments) || !Number.isFinite(meta?.totalComments)) {
       throw new TypeError('Comments are unavailable');
     }
-    return { gameData, comments, totalComments: meta.totalComments };
+    return { gameData, comments, totalComments: meta.totalComments, profile };
   } catch {
     if (signal?.aborted) return;
     showSnackbar('Could not load comments.', 'error');
-    return { gameData, comments: [], totalComments: 0, commentsError: true };
+    return {
+      gameData,
+      comments: [],
+      totalComments: 0,
+      commentsError: true,
+      profile,
+    };
   }
 }
 
@@ -107,8 +120,9 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
   const likesBlockImg = document.createElement('img');
   likesBlockImg.alt = 'Likes';
   likesBlockImg.src = heartIcon;
-  likesBlock.textContent = `${gameData?.likesCount / 100 / 10}K`;
-  likesBlock.prepend(likesBlockImg);
+  const likesCount = document.createElement('span');
+  likesCount.textContent = String(gameData.likesCount);
+  likesBlock.append(likesBlockImg, likesCount);
 
   statsInfoBlock.append(ratingBlock, likesBlock);
 
@@ -291,12 +305,12 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
   playButton.textContent = 'Play Now';
 
   const addFavoritesButton = document.createElement('button');
+  addFavoritesButton.type = 'button';
   addFavoritesButton.classList.add('addFavoritesButton');
 
   const buttonText = document.createElement('span');
   buttonText.classList.add('addFavoritesButtonText');
   buttonText.textContent = 'Add to favorites';
-
   const heartIconButton = document.createElement('img');
   heartIconButton.alt = '';
   heartIconButton.classList.add('heartIconButton');
@@ -304,6 +318,88 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
 
   addFavoritesButton.replaceChildren(heartIconButton, buttonText);
   addFavoritesButton.setAttribute('aria-label', 'Add to favorites');
+
+  let isPending = false;
+  let favoriteProfile = result.profile;
+  let isFavorited = Boolean(favoriteProfile && gameData.isLikedByCurrentUser);
+
+  function updateFavoriteButton(): void {
+    const label = isFavorited ? 'Remove from favorites' : 'Add to favorites';
+    buttonText.textContent = isPending ? 'Loading...' : label;
+    heartIconButton.src = isFavorited ? heartIcon : grayHeartIcon;
+    addFavoritesButton.disabled = isPending;
+    addFavoritesButton.setAttribute('aria-pressed', String(isFavorited));
+    addFavoritesButton.setAttribute('aria-busy', String(isPending));
+    addFavoritesButton.setAttribute('aria-label', label);
+  }
+
+  async function refreshFavorite(): Promise<void> {
+    const profile = session.profile;
+    if (profile === favoriteProfile) return;
+    favoriteProfile = profile;
+    isFavorited = false;
+    if (!profile?.email) {
+      isPending = false;
+      updateFavoriteButton();
+      return;
+    }
+    isPending = true;
+    updateFavoriteButton();
+    try {
+      const { data } = await getGameDetails(gameData.slug, undefined, profile.email);
+      if (session.profile !== profile) return;
+      isFavorited = data.isLikedByCurrentUser;
+      likesCount.textContent = String(data.likesCount);
+    } catch {
+      if (session.profile === profile)
+        showSnackbar('Could not load favorite status. Please reopen the game.', 'error');
+    } finally {
+      if (favoriteProfile === profile) {
+        isPending = false;
+        updateFavoriteButton();
+      }
+    }
+  }
+
+  dialogContent.addEventListener('app:profile', () => void refreshFavorite());
+  updateFavoriteButton();
+
+  addFavoritesButton.addEventListener('click', async () => {
+    if (isPending) return;
+    if (!hasActiveSession()) {
+      showSnackbar('Please sign in to manage favorites.', 'error');
+      globalThis.dispatchEvent(new Event('app:require-auth'));
+      return;
+    }
+    const profile = session.profile;
+    if (!profile?.email) {
+      showSnackbar('Your profile has no email address.', 'error');
+      return;
+    }
+    isPending = true;
+    updateFavoriteButton();
+    try {
+      const { data } = await toggleGameFavoriteApi(gameData.slug, profile.email);
+      if (!hasActiveSession() || session.profile !== profile) return;
+      isFavorited = data.isFavorited;
+      likesCount.textContent = String(data.likesCount);
+      showSnackbar(
+        isFavorited ? 'Game added to favorites.' : 'Game removed from favorites.',
+        'success',
+      );
+    } catch (error) {
+      const message =
+        error instanceof ApiError && error.status === 429
+          ? 'Too many requests. Please wait before trying again.'
+          : 'Could not confirm the change. Reopen the game to check its status.';
+      showSnackbar(message, 'error');
+    } finally {
+      if (favoriteProfile === profile) {
+        isPending = false;
+        updateFavoriteButton();
+      }
+    }
+  });
 
   dialogButtonsWrapper.append(playButton, addFavoritesButton);
 
@@ -351,6 +447,7 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
         : 'U';
     }
     gameDetailsDialog.dataset.authenticated = String(Boolean(session.profile));
+    content.querySelector('.gameDetailsDialogContent')?.dispatchEvent(new Event('app:profile'));
   }
 
   gameDetailsDialog.addEventListener('app:profile', updateProfile);
@@ -363,6 +460,7 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
       if (hasActiveSession()) return;
       event.preventDefault();
       event.stopImmediatePropagation();
+      showSnackbar('Please sign in to use this action.', 'error');
       globalThis.dispatchEvent(new Event('app:require-auth'));
     },
     { capture: true },

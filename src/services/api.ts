@@ -3,6 +3,7 @@ import type { Category } from '../components/library-section/games-filter/games-
 import {
   GameCommentsResponse,
   GameDetailsResponse,
+  GameFavoriteToggleResponse,
 } from '../components/dialogs/types/dialog-types.ts';
 import { TopPlayersResponse } from '../components/leaderboard-table-section/types/leaderboard-table-types.ts';
 
@@ -79,8 +80,11 @@ export async function getGamesUniversal(
 export async function getGameDetails(
   slug: string,
   signal?: AbortSignal,
+  userEmail?: string,
 ): Promise<GameDetailsResponse> {
-  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}`, { signal });
+  const url = new URL(`${baseUrl}games/${encodeURIComponent(slug)}`);
+  if (userEmail) url.searchParams.set('userEmail', userEmail);
+  const response = await fetch(url, { signal });
 
   if (!response.ok) {
     throw new ApiError(response.status);
@@ -101,5 +105,26 @@ export async function getGameComments(
   if (!response.ok) {
     throw new Error(`error HTTP: ${response.status}`);
   }
+  return response.json();
+}
+
+export async function toggleGameFavoriteApi(
+  slug: string,
+  userEmail: string,
+): Promise<GameFavoriteToggleResponse> {
+  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}/favorite`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userEmail,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status);
+  }
+
   return response.json();
 }
