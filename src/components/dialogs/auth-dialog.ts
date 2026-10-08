@@ -1,4 +1,5 @@
 import './auth-dialog.scss';
+import { shouldBlockAuth } from '../../app/navigation.ts';
 import { FirebaseError } from 'firebase/app';
 import { loginUser, loginWithGoogle, registerUser } from '../../services/auth.ts';
 import { showSnackbar } from '../snackbar/snackbar.ts';
@@ -458,6 +459,10 @@ export function createAuthDialog(options: {
   });
 
   dialog.addEventListener('auth:open', () => {
+    if (shouldBlockAuth()) {
+      globalThis.dispatchEvent(new Event('app:navigate'));
+      return;
+    }
     if (dialog.open) {
       return;
     }

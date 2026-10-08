@@ -9,6 +9,7 @@ import {
   normalizeRouteParameters,
   openAuthentication,
   readRouteState,
+  shouldBlockAuth,
 } from './navigation.ts';
 
 export { getRoutePath, navigate } from './navigation.ts';
@@ -39,6 +40,7 @@ export function setupSessionDialogs(): void {
     routerState.dialog?.dispatchEvent(new Event('app:profile'));
   });
   globalThis.addEventListener('app:require-auth', () => {
+    if (shouldBlockAuth()) return;
     if (actionState.authDialog || !routerState.dialogKey?.startsWith('game:')) return;
     actionState.gameDialog = routerState.dialog;
     actionState.gameDialog?.close();
@@ -85,7 +87,9 @@ export function router(): void {
   const main = document.querySelector('main');
   if (!main) return;
 
-  normalizeRouteParameters();
+  const hasAuthParameter = new URLSearchParams(globalThis.location.search).has('auth');
+  const isAuthBlocked = hasAuthParameter && shouldBlockAuth();
+  if (!isAuthBlocked) normalizeRouteParameters();
   const state = readRouteState();
   const { category, sort, page } = state.library;
   const pageKey =
