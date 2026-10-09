@@ -1,6 +1,7 @@
 import type { GamesData } from '../components/library-section/types/game.ts';
 import type { Category } from '../components/library-section/games-filter/games-filter.ts';
 import {
+  CommentLikeResponse,
   GameCommentPost,
   GameCommentsResponse,
   GameDetailsResponse,
@@ -151,5 +152,20 @@ export async function sendGameComment(
   });
   if (!response.ok) throw new ApiError(response.status);
   if (response.status !== 201) throw new Error('Comment result is unknown');
+  return response.json();
+}
+
+export async function toggleCommentLike(
+  commentId: string,
+  userEmail: string,
+): Promise<CommentLikeResponse> {
+  const response = await fetch(`${baseUrl}comments/${encodeURIComponent(commentId)}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userEmail }),
+  });
+  if (!response.ok) throw new ApiError(response.status);
   return response.json();
 }

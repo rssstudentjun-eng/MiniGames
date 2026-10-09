@@ -49,6 +49,13 @@ export interface GameCommentsResponse {
   meta: GameCommentsMeta;
 }
 
+export interface CommentLikeResponse {
+  data: {
+    isLikedByCurrentUser: boolean;
+    likesCount: number;
+  };
+}
+
 export interface GameFavoriteToggleResponse {
   data: {
     gameSlug: string;
