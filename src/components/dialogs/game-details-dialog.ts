@@ -23,6 +23,14 @@ import { hasActiveSession, session } from '../../state/session.ts';
 import { getProfileName } from '../header/header.ts';
 
 const medals = [medal_1, medal_2, medal_3];
+const avatarColors = new Map<string, string>();
+const avatarTokens = [
+  '--avatar-random-1',
+  '--avatar-random-2',
+  '--avatar-random-3',
+  '--avatar-random-4',
+  '--avatar-random-5',
+];
 
 export function closeDialog(gameDetailsDialog: HTMLDialogElement) {
   if (!gameDetailsDialog.open || gameDetailsDialog.classList.contains('isClosing')) {
@@ -346,16 +354,19 @@ function createGameDetailsContent(
 
     const commentAuthorFirstLetter = document.createElement('p');
     commentAuthorFirstLetter.classList.add('commentAuthorFirstLetter');
-    commentAuthorFirstLetter.textContent = comment.authorName.slice(0, 1);
+    const authorName = comment.authorName.trim();
+    commentAuthorFirstLetter.textContent = [...authorName][0]?.toUpperCase() ?? '';
+    let avatarColor = avatarColors.get(authorName);
+    if (!avatarColor) {
+      const randomIndex = Math.floor(Math.random() * avatarTokens.length);
+      avatarColor = avatarTokens[randomIndex];
+      avatarColors.set(authorName, avatarColor);
+    }
+    commentAuthorFirstLetter.style.backgroundColor = `var(${avatarColor})`;
 
     const commentAuthor = document.createElement('p');
     commentAuthor.classList.add('commentAuthor');
     commentAuthor.textContent = comment.authorName;
-    if (index === 0) {
-      commentAuthorFirstLetter.classList.add('firstComment');
-    } else if (index === 2) {
-      commentAuthorFirstLetter.classList.add('thirdComment');
-    }
 
     const daysCounter = document.createElement('time');
     daysCounter.classList.add('daysCounter');

@@ -436,14 +436,6 @@
   gap: 17px;
 }
 
-.firstComment {
-  background: var(--avatar-random-3);
-}
-
-.thirdComment {
-  background: var(--avatar-random-1);
-}
-
 @include after-tablet {
   .dialogTitle {
     width: 330px;
