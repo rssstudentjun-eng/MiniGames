@@ -418,6 +418,10 @@
 }
 
 .commentLikesBlock {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: left;
@@ -429,6 +433,11 @@
   > img {
     width: 14px;
     height: 14px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
   }
 }
 
