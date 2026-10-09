@@ -14,6 +14,7 @@ import {
   getGameDetails,
   sendGameComment,
   toggleGameFavoriteApi,
+  toggleCommentLike,
 } from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
 import { formatCommentTime } from '../../utils/format-comment-time.ts';
@@ -345,51 +346,136 @@ function createGameDetailsContent(
   const commentsList = document.createElement('ul');
   commentsList.classList.add('commentsList');
 
-  for (const [index, comment] of comments.entries()) {
-    const commentItem = document.createElement('li');
-    commentItem.classList.add('commentItem');
-
-    const commentTop = document.createElement('div');
-    commentTop.classList.add('commentTop');
-
-    const commentAuthorFirstLetter = document.createElement('p');
-    commentAuthorFirstLetter.classList.add('commentAuthorFirstLetter');
-    const authorName = comment.authorName.trim();
-    commentAuthorFirstLetter.textContent = [...authorName][0]?.toUpperCase() ?? '';
-    let avatarColor = avatarColors.get(authorName);
-    if (!avatarColor) {
-      const randomIndex = Math.floor(Math.random() * avatarTokens.length);
-      avatarColor = avatarTokens[randomIndex];
-      avatarColors.set(authorName, avatarColor);
+  function renderComments(items: GameComment[], profile = session.profile): void {
+    commentsList.replaceChildren();
+    if (!commentsError && items.length === 0) {
+      const emptyMessage = document.createElement('li');
+      emptyMessage.classList.add('emptyMessage');
+      emptyMessage.textContent = 'Comments list is empty';
+      commentsList.append(emptyMessage);
     }
-    commentAuthorFirstLetter.style.backgroundColor = `var(${avatarColor})`;
+    for (const comment of items) {
+      const commentItem = document.createElement('li');
+      commentItem.classList.add('commentItem');
 
-    const commentAuthor = document.createElement('p');
-    commentAuthor.classList.add('commentAuthor');
-    commentAuthor.textContent = comment.authorName;
+      const commentTop = document.createElement('div');
+      commentTop.classList.add('commentTop');
 
-    const daysCounter = document.createElement('time');
-    daysCounter.classList.add('daysCounter');
-    daysCounter.dateTime = comment.createdAt;
-    daysCounter.textContent = formatCommentTime(comment.createdAt);
+      const commentAuthorFirstLetter = document.createElement('p');
+      commentAuthorFirstLetter.classList.add('commentAuthorFirstLetter');
+      const authorName = comment.authorName.trim();
+      commentAuthorFirstLetter.textContent = [...authorName][0]?.toUpperCase() ?? '';
+      let avatarColor = avatarColors.get(authorName);
+      if (!avatarColor) {
+        const randomIndex = Math.floor(Math.random() * avatarTokens.length);
+        avatarColor = avatarTokens[randomIndex];
+        avatarColors.set(authorName, avatarColor);
+      }
+      commentAuthorFirstLetter.style.backgroundColor = `var(${avatarColor})`;
 
-    commentTop.append(commentAuthorFirstLetter, commentAuthor, daysCounter);
+      const commentAuthor = document.createElement('p');
+      commentAuthor.classList.add('commentAuthor');
+      commentAuthor.textContent = comment.authorName;
 
-    const commentContent = document.createElement('p');
-    commentContent.classList.add('commentContent');
-    commentContent.textContent = comment.text;
+      const daysCounter = document.createElement('time');
+      daysCounter.classList.add('daysCounter');
+      daysCounter.dateTime = comment.createdAt;
+      daysCounter.textContent = formatCommentTime(comment.createdAt);
 
-    const commentLikesBlock = document.createElement('p');
-    commentLikesBlock.classList.add('commentLikesBlock');
-    const heartIconComment = document.createElement('img');
-    heartIconComment.src = index < 2 ? grayHeartIcon : heartIcon;
-    heartIconComment.alt = '';
-    commentLikesBlock.textContent = String(comment.likesCount);
-    commentLikesBlock.prepend(heartIconComment);
+      commentTop.append(commentAuthorFirstLetter, commentAuthor, daysCounter);
 
-    commentItem.append(commentTop, commentContent, commentLikesBlock);
-    commentsList.append(commentItem);
+      const commentContent = document.createElement('p');
+      commentContent.classList.add('commentContent');
+      commentContent.textContent = comment.text;
+
+      const commentLikesBlock = document.createElement('button');
+      commentLikesBlock.type = 'button';
+      commentLikesBlock.classList.add('commentLikesBlock');
+      const heartIconComment = document.createElement('img');
+      heartIconComment.alt = '';
+      const likeCount = document.createElement('span');
+      let isLiked = Boolean(profile && comment.isLikedByCurrentUser);
+      let isPending = false;
+
+      function updateLikeButton(): void {
+        heartIconComment.src = isLiked ? heartIcon : grayHeartIcon;
+        likeCount.textContent = isPending ? 'Loading...' : String(comment.likesCount);
+        commentLikesBlock.disabled = isPending;
+        commentLikesBlock.setAttribute('aria-pressed', String(isLiked));
+        commentLikesBlock.setAttribute('aria-busy', String(isPending));
+        commentLikesBlock.setAttribute('aria-label', isLiked ? 'Unlike comment' : 'Like comment');
+      }
+
+      commentLikesBlock.append(heartIconComment, likeCount);
+      updateLikeButton();
+      commentLikesBlock.addEventListener('click', async () => {
+        if (isPending) return;
+        if (!hasActiveSession()) {
+          showSnackbar('Please sign in to like comments.', 'error');
+          globalThis.dispatchEvent(new Event('app:require-auth'));
+          return;
+        }
+        const activeProfile = session.profile;
+        if (!activeProfile?.email) return;
+        isPending = true;
+        updateLikeButton();
+        try {
+          const { data } = await toggleCommentLike(comment.commentId, activeProfile.email);
+          if (!hasActiveSession() || session.profile !== activeProfile) return;
+          isLiked = data.isLikedByCurrentUser;
+          comment.isLikedByCurrentUser = isLiked;
+          comment.likesCount = data.likesCount;
+          showSnackbar(isLiked ? 'Comment liked.' : 'Comment like removed.', 'success');
+        } catch (error) {
+          let message = 'The result is unknown. Reopen the game to check the like before retrying.';
+          if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+            message =
+              error.status === 429
+                ? 'Too many requests. Please wait before trying again.'
+                : 'Could not update the comment like. Please try again.';
+          }
+          showSnackbar(message, 'error');
+        } finally {
+          isPending = false;
+          updateLikeButton();
+        }
+      });
+
+      commentItem.append(commentTop, commentContent, commentLikesBlock);
+      commentsList.append(commentItem);
+    }
   }
+  renderComments(comments, result.profile);
+
+  let commentsProfile = result.profile;
+  async function refreshCommentLikes(): Promise<void> {
+    const profile = session.profile;
+    if (profile === commentsProfile) return;
+    commentsProfile = profile;
+    if (!profile?.email) {
+      renderComments(comments, undefined);
+      return;
+    }
+    commentsList.setAttribute('aria-busy', 'true');
+    const loading = document.createElement('li');
+    loading.textContent = 'Loading comments...';
+    commentsList.replaceChildren(loading);
+    try {
+      const { data, meta } = await getGameComments(gameData.slug, undefined, profile.email);
+      if (session.profile !== profile) return;
+      comments.splice(0, comments.length, ...data);
+      renderComments(comments, profile);
+      commentsBlockTitle.textContent = `Comments (${meta.totalComments})`;
+    } catch {
+      if (session.profile !== profile) return;
+      loading.textContent = 'Comments could not be loaded. Please reopen the game.';
+      loading.setAttribute('role', 'alert');
+      showSnackbar('Could not load comments.', 'error');
+    } finally {
+      if (session.profile === profile) commentsList.setAttribute('aria-busy', 'false');
+    }
+  }
+  dialogContent.addEventListener('app:profile', () => void refreshCommentLikes());
 
   commentsBlock.append(commentsBlockTitle, commentInputBlock, commentMessage, commentsList);
 
@@ -403,11 +489,6 @@ function createGameDetailsContent(
     retryButton.textContent = 'Try again';
     retryButton.addEventListener('click', onRetry);
     commentsBlock.append(message, retryButton);
-  } else if (comments.length === 0) {
-    const emptyMessage = document.createElement('p');
-    emptyMessage.classList.add('emptyMessage');
-    emptyMessage.textContent = 'Comments list is empty';
-    commentsBlock.append(emptyMessage);
   }
   const dialogButtonsWrapper = document.createElement('div');
   dialogButtonsWrapper.classList.add('dialogButtonsWrapper');
