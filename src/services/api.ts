@@ -1,10 +1,13 @@
 import type { GamesData } from '../components/library-section/types/game.ts';
 import type { Category } from '../components/library-section/games-filter/games-filter.ts';
-import type { TopPlayersResponse } from '../components/leaderboard-table-section/leaderboard-table-section.ts';
 import {
+  CommentLikeResponse,
+  GameCommentPost,
   GameCommentsResponse,
   GameDetailsResponse,
+  GameFavoriteToggleResponse,
 } from '../components/dialogs/types/dialog-types.ts';
+import { TopPlayersResponse } from '../components/leaderboard-table-section/types/leaderboard-table-types.ts';
 
 export const baseUrl = 'https://faxb76kxra.execute-api.eu-central-1.amazonaws.com/api/';
 
@@ -79,8 +82,11 @@ export async function getGamesUniversal(
 export async function getGameDetails(
   slug: string,
   signal?: AbortSignal,
+  userEmail?: string,
 ): Promise<GameDetailsResponse> {
-  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}`, { signal });
+  const url = new URL(`${baseUrl}games/${encodeURIComponent(slug)}`);
+  if (userEmail) url.searchParams.set('userEmail', userEmail);
+  const response = await fetch(url, { signal });
 
   if (!response.ok) {
     throw new ApiError(response.status);
@@ -91,8 +97,10 @@ export async function getGameDetails(
 export async function getGameComments(
   slug: string,
   signal?: AbortSignal,
+  userEmail?: string,
 ): Promise<GameCommentsResponse> {
   const parameters = new URLSearchParams({ limit: '3', sort: 'newest' });
+  if (userEmail) parameters.set('userEmail', userEmail);
   const response = await fetch(
     `${baseUrl}games/${encodeURIComponent(slug)}/comments?${parameters}`,
     { signal },
@@ -101,5 +109,63 @@ export async function getGameComments(
   if (!response.ok) {
     throw new Error(`error HTTP: ${response.status}`);
   }
+  return response.json();
+}
+
+export async function toggleGameFavoriteApi(
+  slug: string,
+  userEmail: string,
+): Promise<GameFavoriteToggleResponse> {
+  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}/favorite`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userEmail,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status);
+  }
+
+  return response.json();
+}
+
+export async function sendGameComment(
+  slug: string,
+  userEmail: string,
+  authorName: string,
+  text: string,
+): Promise<GameCommentPost> {
+  const response = await fetch(`${baseUrl}games/${encodeURIComponent(slug)}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userEmail,
+      authorName,
+      text,
+    }),
+  });
+  if (!response.ok) throw new ApiError(response.status);
+  if (response.status !== 201) throw new Error('Comment result is unknown');
+  return response.json();
+}
+
+export async function toggleCommentLike(
+  commentId: string,
+  userEmail: string,
+): Promise<CommentLikeResponse> {
+  const response = await fetch(`${baseUrl}comments/${encodeURIComponent(commentId)}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userEmail }),
+  });
+  if (!response.ok) throw new ApiError(response.status);
   return response.json();
 }

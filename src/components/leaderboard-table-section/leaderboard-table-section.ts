@@ -1,22 +1,5 @@
 import './leaderboard-table-section.scss';
-
-interface TopPlayer {
-  rank: number;
-  playerName: string;
-  gamesPlayed: number;
-  totalScore: number;
-  streakDays: number;
-  favoriteGameSlug: string;
-  favoriteGameName: string;
-}
-
-export interface TopPlayersResponse {
-  data: TopPlayer[];
-  meta: {
-    totalItems: number;
-    description: string;
-  };
-}
+import { TopPlayersResponse } from './types/leaderboard-table-types.ts';
 
 export function createLeadBoardSection(
   topPlayers: TopPlayersResponse | 'loading' | 'error',
