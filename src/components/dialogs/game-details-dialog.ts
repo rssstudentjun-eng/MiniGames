@@ -12,6 +12,7 @@ import {
   ApiError,
   getGameComments,
   getGameDetails,
+  sendGameComment,
   toggleGameFavoriteApi,
 } from '../../services/api.ts';
 import { getGameImageUrl } from '../../utils/game-image.ts';
@@ -19,7 +20,7 @@ import { formatCommentTime } from '../../utils/format-comment-time.ts';
 import { GameComment, GameDetails } from './types/dialog-types.ts';
 import { showSnackbar } from '../snackbar/snackbar.ts';
 import { hasActiveSession, session } from '../../state/session.ts';
-import { getProfileInitials, getProfileName } from '../header/header.ts';
+import { getProfileName } from '../header/header.ts';
 
 const medals = [medal_1, medal_2, medal_3];
 
@@ -62,7 +63,7 @@ export async function fetchGameDetails(
   }
 
   try {
-    const { data: comments, meta } = await getGameComments(slug, signal);
+    const { data: comments, meta } = await getGameComments(slug, signal, profile?.email);
     if (signal?.aborted) return;
     if (!Array.isArray(comments) || !Number.isFinite(meta?.totalComments)) {
       throw new TypeError('Comments are unavailable');
@@ -81,7 +82,22 @@ export async function fetchGameDetails(
   }
 }
 
-function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
+export async function sendComment(
+  slug: string,
+  userEmail: string,
+  authorName: string,
+  text: string,
+): Promise<GameComment> {
+  const response = await sendGameComment(slug, userEmail, authorName, text);
+  if (!response.data) throw new Error('Comment result is unknown');
+  return response.data;
+}
+
+function createGameDetailsContent(
+  result: GameDialogData,
+  onRetry: () => void,
+  onCommentSent: () => Promise<void>,
+) {
   const { gameData, comments, totalComments, commentsError } = result;
 
   const dialogContent = document.createElement('div');
@@ -230,6 +246,92 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
   sendCommentButtonImg.src = sendCommentIcon;
   sendCommentButton.append(sendCommentButtonImg);
 
+  const commentMessage = document.createElement('p');
+  commentMessage.className = 'commentMessage';
+  commentMessage.setAttribute('role', 'status');
+  commentMessage.hidden = true;
+  let isSending = false;
+
+  function updateCommentForm(): void {
+    const isGuest = !session.profile;
+    inputComment.disabled = isGuest || isSending;
+    sendCommentButton.disabled = isGuest || isSending;
+    sendCommentButton.setAttribute('aria-busy', String(isSending));
+    sendCommentButton.setAttribute('aria-label', isSending ? 'Sending comment...' : 'Send comment');
+    inputComment.placeholder = isGuest ? 'Sign in to write a comment.' : 'Write a comment...';
+  }
+
+  function resizeCommentInput(): void {
+    inputComment.style.height = 'auto';
+    const borderHeight = inputComment.offsetHeight - inputComment.clientHeight;
+    inputComment.style.height = `${inputComment.scrollHeight + borderHeight}px`;
+    inputComment.style.overflowY =
+      inputComment.scrollHeight > inputComment.clientHeight ? 'auto' : 'hidden';
+  }
+
+  function showCommentMessage(message: string): void {
+    commentMessage.textContent = message;
+    commentMessage.hidden = false;
+    showSnackbar(message, 'error');
+  }
+
+  async function submitComment(): Promise<void> {
+    if (isSending) return;
+    if (!hasActiveSession()) {
+      showCommentMessage('Please sign in to send a comment.');
+      globalThis.dispatchEvent(new Event('app:require-auth'));
+      return;
+    }
+    const profile = session.profile;
+    if (!profile?.email) return;
+    const text = inputComment.value.trim();
+    if (!text || text.length > 500) {
+      showCommentMessage('Comment must contain 1?500 characters.');
+      return;
+    }
+    let authorName = getProfileName(profile);
+    if (authorName.length < 2 || authorName.length > 30) authorName = 'Player';
+    isSending = true;
+    commentMessage.textContent = 'Sending comment...';
+    commentMessage.hidden = false;
+    updateCommentForm();
+    try {
+      await sendComment(gameData.slug, profile.email, authorName, text);
+      inputComment.value = '';
+      resizeCommentInput();
+      showSnackbar('Comment sent.', 'success');
+      if (dialogContent.isConnected) await onCommentSent();
+    } catch (error) {
+      let message =
+        'The result is unknown. Your comment may have been sent. Check the list before retrying.';
+      if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+        message =
+          error.status === 429
+            ? 'Too many requests. Please wait before trying again.'
+            : 'Comment was rejected. Please check your text and try again.';
+      }
+      showCommentMessage(message);
+    } finally {
+      isSending = false;
+      updateCommentForm();
+    }
+  }
+
+  inputComment.setAttribute('aria-label', 'Comment');
+  inputComment.addEventListener('input', resizeCommentInput);
+  inputComment.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+    void submitComment();
+  });
+  sendCommentButton.type = 'button';
+  sendCommentButton.addEventListener('click', () => void submitComment());
+  dialogContent.addEventListener('app:profile', updateCommentForm);
+  updateCommentForm();
+
   commentInputBlock.append(userFirstLetterName, inputComment, sendCommentButton);
 
   const commentsList = document.createElement('ul');
@@ -278,7 +380,7 @@ function createGameDetailsContent(result: GameDialogData, onRetry: () => void) {
     commentsList.append(commentItem);
   }
 
-  commentsBlock.append(commentsBlockTitle, commentInputBlock, commentsList);
+  commentsBlock.append(commentsBlockTitle, commentInputBlock, commentMessage, commentsList);
 
   if (commentsError) {
     const message = document.createElement('p');
@@ -443,7 +545,7 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
     const avatar = content.querySelector('.userFirstLetterName');
     if (avatar) {
       avatar.textContent = session.profile
-        ? getProfileInitials(getProfileName(session.profile))
+        ? [...getProfileName(session.profile)][0].toUpperCase()
         : 'U';
     }
     gameDetailsDialog.dataset.authenticated = String(Boolean(session.profile));
@@ -476,7 +578,13 @@ export function createGameDetailsDialog(slug: string, onClose: () => void): HTML
     try {
       const result = await fetchGameDetails(slug, controller.signal);
       if (!result || controller.signal.aborted) return;
-      content.replaceChildren(createGameDetailsContent(result, () => void loadContent(true)));
+      content.replaceChildren(
+        createGameDetailsContent(
+          result,
+          () => void loadContent(true),
+          () => loadContent(),
+        ),
+      );
       updateProfile();
       if (isRetry && !result.commentsError) showSnackbar('Game details loaded.', 'success');
       gameDetailsDialog.setAttribute('aria-labelledby', 'game-details-title');
