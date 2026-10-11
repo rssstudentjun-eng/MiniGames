@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGameDetailsDialog } from './game-details-dialog.ts';
-import { ApiError, getGameComments, getGameDetails, sendGameComment } from '../../services/api.ts';
+import {
+  ApiError,
+  getGameComments,
+  getGameDetails,
+  sendGameComment,
+  toggleCommentLike,
+} from '../../services/api.ts';
 import { hasActiveSession, session } from '../../state/session.ts';
 import { showSnackbar } from '../snackbar/snackbar.ts';
 import type { GameComment, GameDetails } from './types/dialog-types.ts';
@@ -10,6 +16,7 @@ vi.mock('../../services/api.ts', async (importOriginal) => ({
   getGameDetails: vi.fn(),
   getGameComments: vi.fn(),
   sendGameComment: vi.fn(),
+  toggleCommentLike: vi.fn(),
 }));
 vi.mock('../../state/session.ts', () => ({
   session: { profile: undefined },
@@ -66,6 +73,100 @@ beforeEach(() => {
     meta: { totalComments: 0, returnedCount: 0 },
   });
   vi.mocked(sendGameComment).mockResolvedValue({ data: comment });
+});
+
+async function setupLike(isLiked = false) {
+  vi.mocked(getGameComments).mockResolvedValue({
+    data: [{ ...comment, likesCount: 4, isLikedByCurrentUser: isLiked }],
+    meta: { totalComments: 1, returnedCount: 1 },
+  });
+  const { dialog } = await setupDialog();
+  const button = dialog.querySelector<HTMLButtonElement>('.commentLikesBlock')!;
+  return { dialog, button };
+}
+
+describe('Comment likes', () => {
+  it.each([
+    { initial: false, next: true, count: 9, label: 'Unlike comment', message: 'Comment liked.' },
+    {
+      initial: true,
+      next: false,
+      count: 2,
+      label: 'Like comment',
+      message: 'Comment like removed.',
+    },
+  ])(
+    'updates the like state and server count from $initial to $next',
+    async ({ initial, next, count, label, message }) => {
+      const { button } = await setupLike(initial);
+      const initialIcon = button.querySelector('img')!.src;
+      expect(button.getAttribute('aria-pressed')).toBe(String(initial));
+      vi.mocked(toggleCommentLike).mockResolvedValue({
+        data: { isLikedByCurrentUser: next, likesCount: count },
+      });
+      button.click();
+      await vi.waitFor(() => expect(button.getAttribute('aria-busy')).toBe('false'));
+      expect(toggleCommentLike).toHaveBeenCalledExactlyOnceWith(
+        comment.commentId,
+        'alex@example.com',
+      );
+      expect(button.getAttribute('aria-pressed')).toBe(String(next));
+      expect(button.getAttribute('aria-label')).toBe(label);
+      expect(button.querySelector('span')!.textContent).toBe(String(count));
+      expect(button.querySelector('img')!.src).not.toBe(initialIcon);
+      expect(button.disabled).toBe(false);
+      expect(showSnackbar).toHaveBeenCalledExactlyOnceWith(message, 'success');
+    },
+  );
+
+  it('blocks duplicate requests and keeps the previous state while a like is pending', async () => {
+    let isRequestFinished = false;
+    vi.mocked(toggleCommentLike).mockImplementation(async () => {
+      await vi.waitFor(() => expect(isRequestFinished).toBe(true));
+      return { data: { isLikedByCurrentUser: true, likesCount: 5 } };
+    });
+    const { button } = await setupLike();
+    button.click();
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+    expect(button.querySelector('span')!.textContent).toBe('Loading...');
+    button.click();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(toggleCommentLike).toHaveBeenCalledTimes(1);
+    isRequestFinished = true;
+    await vi.waitFor(() => expect(button.disabled).toBe(false));
+    expect(button.getAttribute('aria-busy')).toBe('false');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect(button.querySelector('span')!.textContent).toBe('5');
+  });
+
+  it.each([
+    { status: 400, message: 'Could not update the comment like. Please try again.' },
+    { status: 429, message: 'Too many requests. Please wait before trying again.' },
+    {
+      status: 500,
+      message: 'The result is unknown. Reopen the game to check the like before retrying.',
+    },
+  ])(
+    'preserves the like and count and unlocks the button after HTTP $status',
+    async ({ status, message }) => {
+      const { button } = await setupLike(true);
+      const initialIcon = button.querySelector('img')!.src;
+      vi.mocked(toggleCommentLike).mockRejectedValue(new ApiError(status));
+      button.click();
+      expect(button.disabled).toBe(true);
+      await vi.waitFor(() => expect(button.disabled).toBe(false));
+      expect(button.getAttribute('aria-busy')).toBe('false');
+      expect(button.getAttribute('aria-pressed')).toBe('true');
+      expect(button.getAttribute('aria-label')).toBe('Unlike comment');
+      expect(button.querySelector('span')!.textContent).toBe('4');
+      expect(button.querySelector('img')!.src).toBe(initialIcon);
+      expect(showSnackbar).toHaveBeenCalledExactlyOnceWith(message, 'error');
+      expect(toggleCommentLike).toHaveBeenCalledTimes(1);
+      expect(getGameComments).toHaveBeenCalledTimes(1);
+    },
+  );
 });
 
 afterEach(() => {
