@@ -220,6 +220,93 @@ describe('Game comment form', () => {
     expect(sendGameComment).not.toHaveBeenCalled();
   });
 
+  it('blocks the comment form on sign-out and preserves the draft', async () => {
+    const { dialog, input, button } = await setupDialog('Unsent draft');
+    expect(input.disabled).toBe(false);
+    expect(button.disabled).toBe(false);
+
+    session.profile = undefined;
+    vi.mocked(hasActiveSession).mockReturnValue(false);
+    dialog.dispatchEvent(new Event('app:profile'));
+
+    expect(input.disabled).toBe(true);
+    expect(button.disabled).toBe(true);
+    expect(input.placeholder).toBe('Sign in to write a comment.');
+    expect(input.value).toBe('Unsent draft');
+    expect(dialog.dataset.authenticated).toBe('false');
+    expect(dialog.querySelector('.userFirstLetterName')!.textContent).toBe('U');
+    button.click();
+    expect(sendGameComment).not.toHaveBeenCalled();
+    expect(getGameComments).toHaveBeenCalledTimes(1);
+  });
+
+  it('unlocks the guest form on sign-in and allows sending the preserved draft', async () => {
+    session.profile = undefined;
+    vi.mocked(hasActiveSession).mockReturnValue(false);
+    const { dialog, input, button } = await setupDialog('Unsent draft');
+    expect(input.disabled).toBe(true);
+    expect(button.disabled).toBe(true);
+
+    session.profile = {
+      displayName: 'Alex',
+      email: 'alex@example.com',
+      authenticatedAt: Date.now(),
+    };
+    vi.mocked(hasActiveSession).mockReturnValue(true);
+    dialog.dispatchEvent(new Event('app:profile'));
+
+    expect(input.disabled).toBe(false);
+    expect(button.disabled).toBe(false);
+    expect(input.placeholder).toBe('Write a comment...');
+    expect(input.value).toBe('Unsent draft');
+    expect(dialog.dataset.authenticated).toBe('true');
+    expect(dialog.querySelector('.userFirstLetterName')!.textContent).toBe('A');
+    await vi.waitFor(() =>
+      expect(dialog.querySelector('.commentsList')!.getAttribute('aria-busy')).toBe('false'),
+    );
+    button.click();
+    expect(sendGameComment).toHaveBeenCalledExactlyOnceWith(
+      game.slug,
+      'alex@example.com',
+      'Alex',
+      'Unsent draft',
+    );
+    await vi.waitFor(() => expect(showSnackbar).toHaveBeenCalledWith('Comment sent.', 'success'));
+    await vi.waitFor(() => expect(dialog.querySelector('.inputComment')).not.toBe(input));
+  });
+
+  it('shows a reload error without resending a successfully posted comment', async () => {
+    const { dialog, button } = await setupDialog();
+    vi.mocked(getGameComments).mockRejectedValue(new ApiError(500));
+    button.click();
+
+    await vi.waitFor(() =>
+      expect(dialog.querySelector(':scope .commentsBlock [role="alert"]')!.textContent).toBe(
+        'Comments could not be loaded. Please try again.',
+      ),
+    );
+    expect(showSnackbar).toHaveBeenCalledWith('Comment sent.', 'success');
+    expect(showSnackbar).toHaveBeenCalledWith('Could not load comments.', 'error');
+    expect(sendGameComment).toHaveBeenCalledTimes(1);
+    expect(getGameComments).toHaveBeenCalledTimes(2);
+    expect(dialog.querySelector('.commentsBlockTitle')!.textContent).toBe('Comments');
+    expect(dialog.querySelector<HTMLTextAreaElement>('.inputComment')!.value).toBe('');
+
+    vi.mocked(getGameComments).mockResolvedValue({
+      data: [comment],
+      meta: { totalComments: 1, returnedCount: 1 },
+    });
+    const retry = dialog.querySelector<HTMLButtonElement>(':scope .commentsBlock .playButton')!;
+    expect(retry.textContent).toBe('Try again');
+    retry.click();
+    await vi.waitFor(() =>
+      expect(dialog.querySelector('.commentsBlockTitle')!.textContent).toBe('Comments (1)'),
+    );
+    expect(dialog.querySelector('.commentsList')!.textContent).toContain(comment.text);
+    expect(sendGameComment).toHaveBeenCalledTimes(1);
+    expect(getGameComments).toHaveBeenCalledTimes(3);
+  });
+
   it.each(['success', 'error'] as const)(
     'does not reload a closed dialog when the pending comment finishes with %s',
     async (outcome) => {
