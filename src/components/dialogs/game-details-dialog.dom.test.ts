@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGameDetailsDialog } from './game-details-dialog.ts';
-import { getGameComments, getGameDetails, sendGameComment } from '../../services/api.ts';
+import { ApiError, getGameComments, getGameDetails, sendGameComment } from '../../services/api.ts';
 import { hasActiveSession, session } from '../../state/session.ts';
 import { showSnackbar } from '../snackbar/snackbar.ts';
 import type { GameComment, GameDetails } from './types/dialog-types.ts';
@@ -143,6 +143,38 @@ describe('Game comment form', () => {
     expect(button.getAttribute('aria-busy')).toBe('false');
     expect(input.value).toBe('New comment');
     expect(getGameComments).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { status: 400, message: 'Comment was rejected. Please check your text and try again.' },
+    { status: 429, message: 'Too many requests. Please wait before trying again.' },
+    {
+      status: 500,
+      message:
+        'The result is unknown. Your comment may have been sent. Check the list before retrying.',
+    },
+  ])('preserves text and unlocks the form after HTTP $status', async ({ status, message }) => {
+    vi.mocked(sendGameComment).mockRejectedValue(new ApiError(status));
+    const text = '  My comment\nwith a second line  ';
+    const { dialog, input, button } = await setupDialog(text);
+    const initialList = dialog.querySelector('.commentsList')!.textContent;
+    button.click();
+    expect(input.disabled).toBe(true);
+    expect(button.disabled).toBe(true);
+    await vi.waitFor(() => expect(button.disabled).toBe(false));
+
+    expect(showSnackbar).toHaveBeenCalledExactlyOnceWith(message, 'error');
+    const feedback = dialog.querySelector<HTMLParagraphElement>('.commentMessage')!;
+    expect(feedback.hidden).toBe(false);
+    expect(feedback.textContent).toBe(message);
+    expect(input.value).toBe(text);
+    expect(input.disabled).toBe(false);
+    expect(button.getAttribute('aria-busy')).toBe('false');
+    expect(button.getAttribute('aria-label')).toBe('Send comment');
+    expect(sendGameComment).toHaveBeenCalledTimes(1);
+    expect(getGameComments).toHaveBeenCalledTimes(1);
+    expect(dialog.querySelector('.commentsList')!.textContent).toBe(initialList);
+    expect(dialog.querySelector('.commentsBlockTitle')!.textContent).toBe('Comments (0)');
   });
 
   it('disables the form for guests', async () => {
