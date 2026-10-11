@@ -69,6 +69,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   document.body.replaceChildren();
   session.profile = undefined;
 });
@@ -176,6 +177,38 @@ describe('Game comment form', () => {
     expect(dialog.querySelector('.commentsList')!.textContent).toBe(initialList);
     expect(dialog.querySelector('.commentsBlockTitle')!.textContent).toBe('Comments (0)');
   });
+
+  it.each([
+    { action: 'click', message: 'Please sign in to use this action.' },
+    { action: 'Enter', message: 'Please sign in to send a comment.' },
+  ])(
+    'requires authentication when the session expires before $action',
+    async ({ action, message }) => {
+      const text = '  Unsent comment\nsecond line  ';
+      const { dialog, input, button } = await setupDialog(text);
+      const initialList = dialog.querySelector('.commentsList')!.textContent;
+      const dispatchEvent = vi.spyOn(globalThis, 'dispatchEvent');
+      vi.mocked(hasActiveSession).mockReturnValue(false);
+
+      if (action === 'click') {
+        button.click();
+      } else {
+        expect(pressEnter(input).defaultPrevented).toBe(true);
+        const feedback = dialog.querySelector<HTMLParagraphElement>('.commentMessage')!;
+        expect(feedback.hidden).toBe(false);
+        expect(feedback.textContent).toBe(message);
+      }
+
+      expect(showSnackbar).toHaveBeenCalledExactlyOnceWith(message, 'error');
+      expect(dispatchEvent).toHaveBeenCalledTimes(1);
+      expect(dispatchEvent.mock.calls[0][0].type).toBe('app:require-auth');
+      expect(sendGameComment).not.toHaveBeenCalled();
+      expect(input.value).toBe(text);
+      expect(button.getAttribute('aria-busy')).toBe('false');
+      expect(getGameComments).toHaveBeenCalledTimes(1);
+      expect(dialog.querySelector('.commentsList')!.textContent).toBe(initialList);
+    },
+  );
 
   it('disables the form for guests', async () => {
     session.profile = undefined;
