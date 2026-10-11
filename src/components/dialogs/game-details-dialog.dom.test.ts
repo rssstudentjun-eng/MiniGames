@@ -220,6 +220,39 @@ describe('Game comment form', () => {
     expect(sendGameComment).not.toHaveBeenCalled();
   });
 
+  it.each(['success', 'error'] as const)(
+    'does not reload a closed dialog when the pending comment finishes with %s',
+    async (outcome) => {
+      let isRequestFinished = false;
+      vi.mocked(sendGameComment).mockImplementation(async () => {
+        await vi.waitFor(() => expect(isRequestFinished).toBe(true));
+        if (outcome === 'error') throw new ApiError(500);
+        return { data: comment };
+      });
+      const { dialog, button } = await setupDialog();
+      button.click();
+      expect(button.getAttribute('aria-busy')).toBe('true');
+      expect(sendGameComment).toHaveBeenCalledTimes(1);
+
+      dialog.dispatchEvent(new Event('close'));
+      expect(dialog.isConnected).toBe(false);
+      expect(document.querySelector('.gameDetailsDialog')).toBeNull();
+      isRequestFinished = true;
+      await vi.waitFor(() => expect(button.getAttribute('aria-busy')).toBe('false'));
+
+      expect(getGameDetails).toHaveBeenCalledTimes(1);
+      expect(getGameComments).toHaveBeenCalledTimes(1);
+      expect(sendGameComment).toHaveBeenCalledTimes(1);
+      expect(document.querySelector('.gameDetailsDialog')).toBeNull();
+      expect(showSnackbar).toHaveBeenCalledExactlyOnceWith(
+        outcome === 'success'
+          ? 'Comment sent.'
+          : 'The result is unknown. Your comment may have been sent. Check the list before retrying.',
+        outcome === 'success' ? 'success' : 'error',
+      );
+    },
+  );
+
   it('reloads the list and count and clears the input after successful submission', async () => {
     const { dialog, button } = await setupDialog();
     vi.mocked(getGameComments).mockResolvedValue({
