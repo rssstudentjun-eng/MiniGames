@@ -324,6 +324,9 @@
   padding: 6px 16px;
   width: 80%;
   min-height: 48px;
+  max-height: var(--size-15);
+  box-sizing: border-box;
+  overflow-y: hidden;
   background: var(--white);
   font: inherit;
   font-size: 14px;
@@ -415,6 +418,10 @@
 }
 
 .commentLikesBlock {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: left;
@@ -427,18 +434,15 @@
     width: 14px;
     height: 14px;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
 }
 
 .statsInfoBlock {
   gap: 17px;
-}
-
-.firstComment {
-  background: var(--avatar-random-3);
-}
-
-.thirdComment {
-  background: var(--avatar-random-1);
 }
 
 @include after-tablet {

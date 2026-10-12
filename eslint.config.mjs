@@ -4,7 +4,7 @@ import unicorn from 'eslint-plugin-unicorn';
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', 'commitlint.config.cjs'],
+    ignores: ['dist/**', 'node_modules/**', 'commitlint.config.cjs', 'coverage/**'],
   },
 
   {

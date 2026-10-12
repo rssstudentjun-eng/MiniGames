@@ -1,11 +1,15 @@
 import './auth-dialog.scss';
-
+import { shouldBlockAuth } from '../../app/navigation.ts';
+import { FirebaseError } from 'firebase/app';
+import { loginUser, loginWithGoogle, registerUser } from '../../services/auth.ts';
+import { showSnackbar } from '../snackbar/snackbar.ts';
 import googleIcon from '../../assets/icons/googleIcon.svg';
 import lockIcon from '../../assets/icons/lockIcon.svg';
 import mailIcon from '../../assets/icons/mailIcon.svg';
 import personIcon from '../../assets/icons/personIcon.svg';
 import visibilityIcon from '../../assets/icons/visibilityIcon.svg';
 import closeIcon from '../../assets/icons/closeIcon.svg';
+import { AuthFieldName, validateAuthField } from '../../utils/auth-validation.ts';
 
 export type AuthMode = 'login' | 'register';
 
@@ -18,6 +22,70 @@ type FieldOptions = {
   autocomplete: string;
   showPasswordButton?: boolean;
 };
+
+function validationForm(form: HTMLFormElement, mode: AuthMode): (() => void) | undefined {
+  const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+  if (!submitButton) return;
+
+  const inputs = [...form.querySelectorAll<HTMLInputElement>('input')];
+  const passwordInput = inputs.find((input) => input.name === 'password');
+  const touchedFields = new Set<string>();
+
+  const fields = inputs.map((input) => {
+    const error = document.createElement('span');
+    error.className = 'authError';
+    error.id = `${input.id}-error`;
+    error.hidden = true;
+    error.setAttribute('aria-live', 'polite');
+
+    input.required = true;
+    input.setAttribute('aria-describedby', error.id);
+    input.closest('.authField')?.append(error);
+
+    return { input, error };
+  });
+
+  function updateValidation(): void {
+    let isFormValid = true;
+
+    for (const { input, error } of fields) {
+      const message = validateAuthField(
+        input.name as AuthFieldName,
+        input.value,
+        mode,
+        passwordInput?.value ?? '',
+      );
+
+      if (message) isFormValid = false;
+
+      const shouldShowError = touchedFields.has(input.name) && message !== '';
+
+      error.textContent = shouldShowError ? message : '';
+      error.hidden = !shouldShowError;
+      input.setAttribute('aria-invalid', String(shouldShowError));
+    }
+
+    if (!submitButton) return;
+
+    submitButton.disabled =
+      !isFormValid || form.closest('dialog')?.getAttribute('aria-busy') === 'true';
+  }
+
+  for (const { input } of fields) {
+    function handleFieldChange(): void {
+      touchedFields.add(input.name);
+      updateValidation();
+    }
+
+    input.addEventListener('input', handleFieldChange);
+    input.addEventListener('change', handleFieldChange);
+    input.addEventListener('blur', handleFieldChange);
+  }
+
+  updateValidation();
+  return updateValidation;
+}
 
 function createButton(text: string, className: string): HTMLButtonElement {
   const button = document.createElement('button');
@@ -91,13 +159,16 @@ export function createAuthDialog(options: {
   onClose: () => void;
   onModeChange: (mode: AuthMode) => void;
 }): HTMLDialogElement {
+  let currentMode: AuthMode = 'login';
+  let isPending = false;
+  let updateFormValidation: (() => void) | undefined;
   const dialog = document.createElement('dialog');
   dialog.className = 'authDialog';
   dialog.setAttribute('aria-labelledby', 'auth-title');
   const closeButton = createButton('', 'authClose');
   closeButton.setAttribute('aria-label', 'Close authentication');
   closeButton.append(createIcon(closeIcon));
-  closeButton.addEventListener('click', options.onClose);
+  closeButton.addEventListener('click', requestClose);
 
   const tabs = document.createElement('div');
   tabs.className = 'authTabs';
@@ -117,8 +188,78 @@ export function createAuthDialog(options: {
   form.className = 'authForm';
   form.noValidate = true;
 
-  form.addEventListener('submit', (event) => {
+  function requestClose(): void {
+    if (!isPending) options.onClose();
+  }
+
+  function setPending(shouldLock: boolean): void {
+    isPending = shouldLock;
+    dialog.setAttribute('aria-busy', String(shouldLock));
+    for (const element of dialog.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
+      'input, button',
+    )) {
+      element.disabled = shouldLock;
+    }
+  }
+
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (isPending) return;
+    const data = new FormData(form);
+    const email = String(data.get('email') ?? '');
+    const password = String(data.get('password') ?? '');
+    const username = String(data.get('username') ?? '');
+    const fields: AuthFieldName[] =
+      currentMode === 'register'
+        ? ['username', 'email', 'password', 'confirmPassword']
+        : ['email', 'password'];
+    const isValid = fields.every(
+      (name) => validateAuthField(name, String(data.get(name) ?? ''), currentMode, password) === '',
+    );
+    if (!isValid) {
+      updateFormValidation?.();
+      return;
+    }
+    const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (!submitButton) return;
+    const previousText = submitButton.textContent;
+    setPending(true);
+    submitButton.textContent = currentMode === 'register' ? 'Creating account…' : 'Signing in…';
+    try {
+      if (currentMode === 'register') {
+        await registerUser(email, password, username);
+      } else {
+        await loginUser(email, password);
+      }
+      showSnackbar('You are signed in.', 'success');
+      if (dialog.isConnected) options.onClose();
+    } catch (error) {
+      let message = 'Authentication failed. Please try again.';
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/invalid-credential': {
+            message = 'Incorrect email or password.';
+            break;
+          }
+          case 'auth/email-already-in-use': {
+            message = 'This email is already registered. Please log in.';
+            break;
+          }
+          case 'auth/network-request-failed': {
+            message = 'Check your connection and try again.';
+            break;
+          }
+          default: {
+            message = `Authentication failed: ${error.code}`;
+          }
+        }
+      }
+      showSnackbar(message, 'error');
+    } finally {
+      setPending(false);
+      submitButton.textContent = previousText;
+      updateFormValidation?.();
+    }
   });
 
   const divider = document.createElement('div');
@@ -130,10 +271,53 @@ export function createAuthDialog(options: {
 
   googleButton.append(createIcon(googleIcon), googleButtonText);
 
+  googleButton.addEventListener('click', async () => {
+    if (isPending) return;
+
+    const previousText = googleButtonText.textContent;
+    setPending(true);
+    googleButtonText.textContent = 'Signing in...';
+
+    try {
+      await loginWithGoogle();
+      showSnackbar('You are signed in.', 'success');
+      if (dialog.isConnected) options.onClose();
+    } catch (error) {
+      let message = 'Google sign-in failed. Please try again.';
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/popup-closed-by-user': {
+            message = 'Google sign-in was cancelled.';
+            break;
+          }
+          case 'auth/popup-blocked': {
+            message = 'Allow pop-ups in your browser and try again.';
+            break;
+          }
+          case 'auth/network-request-failed': {
+            message = 'Check your connection and try again.';
+            break;
+          }
+          default: {
+            message = `Google sign-in failed: ${error.code}`;
+          }
+        }
+      }
+
+      showSnackbar(message, 'error');
+    } finally {
+      setPending(false);
+      googleButtonText.textContent = previousText;
+      updateFormValidation?.();
+    }
+  });
+
   const footer = document.createElement('p');
   footer.className = 'authFooter';
 
   function renderLoginForm(): void {
+    currentMode = 'login';
     title.textContent = 'Welcome Back!';
     description.textContent = 'Sign in to resume your games and progress.';
 
@@ -155,7 +339,7 @@ export function createAuthDialog(options: {
       label: 'Password',
       name: 'password',
       type: 'password',
-      placeholder: '••••••••',
+      placeholder: '••••••',
       icon: lockIcon,
       autocomplete: 'current-password',
       showPasswordButton: true,
@@ -167,6 +351,7 @@ export function createAuthDialog(options: {
     submitButton.type = 'submit';
 
     form.append(emailField, passwordField, forgotPasswordButton, submitButton);
+    updateFormValidation = validationForm(form, 'login');
 
     googleButtonText.textContent = 'Continue with Google';
 
@@ -180,6 +365,7 @@ export function createAuthDialog(options: {
   }
 
   function renderRegisterForm(): void {
+    currentMode = 'register';
     title.textContent = 'Create Account';
     description.textContent = 'Join MiniGames to track your score & streak.';
 
@@ -192,7 +378,7 @@ export function createAuthDialog(options: {
       label: 'Username',
       name: 'username',
       type: 'text',
-      placeholder: 'e.g. CozyGamer_99',
+      placeholder: 'e.g. CozyGamer99',
       icon: personIcon,
       autocomplete: 'username',
     });
@@ -210,7 +396,7 @@ export function createAuthDialog(options: {
       label: 'Password',
       name: 'password',
       type: 'password',
-      placeholder: 'Min. 8 characters',
+      placeholder: 'Min. 6 characters',
       icon: lockIcon,
       autocomplete: 'new-password',
     });
@@ -229,6 +415,7 @@ export function createAuthDialog(options: {
     submitButton.type = 'submit';
 
     form.append(usernameField, emailField, passwordField, confirmPasswordField, submitButton);
+    updateFormValidation = validationForm(form, 'register');
 
     googleButtonText.textContent = 'Sign up with Google';
 
@@ -250,6 +437,7 @@ export function createAuthDialog(options: {
   });
 
   dialog.addEventListener('auth:mode', (event) => {
+    if (isPending) return;
     const customEvent = event as CustomEvent<AuthMode>;
 
     if (customEvent.detail === 'register') {
@@ -271,6 +459,10 @@ export function createAuthDialog(options: {
   });
 
   dialog.addEventListener('auth:open', () => {
+    if (shouldBlockAuth()) {
+      globalThis.dispatchEvent(new Event('app:navigate'));
+      return;
+    }
     if (dialog.open) {
       return;
     }
@@ -286,7 +478,7 @@ export function createAuthDialog(options: {
 
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    options.onClose();
+    requestClose();
   });
 
   function isClickOutsideDialog(event: PointerEvent | MouseEvent): boolean {
@@ -310,7 +502,7 @@ export function createAuthDialog(options: {
       isBackdropPressed && event.target === dialog && isClickOutsideDialog(event);
 
     if (isBackdropClicked) {
-      options.onClose();
+      requestClose();
     }
 
     isBackdropPressed = false;

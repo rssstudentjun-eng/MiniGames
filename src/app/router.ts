@@ -3,11 +3,13 @@ import { createLibraryPage } from '../pages/library/library-page.ts';
 import { createNotFoundPage } from '../pages/not-found/not-found-page.ts';
 import { createGameDetailsDialog } from '../components/dialogs/game-details-dialog.ts';
 import { createAuthDialog, openAuthDialog } from '../components/dialogs/auth-dialog.ts';
+import { hasActiveSession } from '../state/session.ts';
 import {
   closeRouteDialog,
   normalizeRouteParameters,
   openAuthentication,
   readRouteState,
+  shouldBlockAuth,
 } from './navigation.ts';
 
 export { getRoutePath, navigate } from './navigation.ts';
@@ -18,6 +20,40 @@ const routerState: {
   dialogKey?: string;
   dialog?: HTMLDialogElement;
 } = {};
+
+const actionState: { authDialog?: HTMLDialogElement; gameDialog?: HTMLDialogElement } = {};
+
+function closeActionAuth(): void {
+  actionState.authDialog?.close();
+  actionState.authDialog?.remove();
+  actionState.authDialog = undefined;
+  if (actionState.gameDialog) {
+    document.body.append(actionState.gameDialog);
+    actionState.gameDialog.showModal();
+    actionState.gameDialog.dispatchEvent(new Event('app:profile'));
+    actionState.gameDialog = undefined;
+  }
+}
+
+export function setupSessionDialogs(): void {
+  globalThis.addEventListener('app:profile', () => {
+    routerState.dialog?.dispatchEvent(new Event('app:profile'));
+  });
+  globalThis.addEventListener('app:require-auth', () => {
+    if (shouldBlockAuth()) return;
+    if (actionState.authDialog || !routerState.dialogKey?.startsWith('game:')) return;
+    actionState.gameDialog = routerState.dialog;
+    actionState.gameDialog?.close();
+    actionState.authDialog = createAuthDialog({
+      onClose: closeActionAuth,
+      onModeChange: (mode) => {
+        if (actionState.authDialog) openAuthDialog(actionState.authDialog, mode);
+      },
+    });
+    document.body.append(actionState.authDialog);
+    openAuthDialog(actionState.authDialog, 'login');
+  });
+}
 
 function synchronizeDialog(state: ReturnType<typeof readRouteState>): void {
   const gameKey = state.gameSlug ? `game:${state.gameSlug}` : undefined;
@@ -34,7 +70,10 @@ function synchronizeDialog(state: ReturnType<typeof readRouteState>): void {
   routerState.dialogKey = dialogKey;
   if (!dialogKey) return;
   const dialog = state.auth
-    ? createAuthDialog({ onClose: closeRouteDialog, onModeChange: openAuthentication })
+    ? createAuthDialog({
+        onClose: closeRouteDialog,
+        onModeChange: openAuthentication,
+      })
     : createGameDetailsDialog(state.gameSlug!, closeRouteDialog);
   routerState.dialog = dialog;
   document.body.append(dialog);
@@ -43,10 +82,14 @@ function synchronizeDialog(state: ReturnType<typeof readRouteState>): void {
 }
 
 export function router(): void {
+  hasActiveSession();
+  if (actionState.authDialog) closeActionAuth();
   const main = document.querySelector('main');
   if (!main) return;
 
-  normalizeRouteParameters();
+  const hasAuthParameter = new URLSearchParams(globalThis.location.search).has('auth');
+  const isAuthBlocked = hasAuthParameter && shouldBlockAuth();
+  if (!isAuthBlocked) normalizeRouteParameters();
   const state = readRouteState();
   const { category, sort, page } = state.library;
   const pageKey =

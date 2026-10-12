@@ -60,6 +60,41 @@
   gap: var(--size-2);
 }
 
+.headerProfile {
+  display: flex;
+  align-items: center;
+  gap: var(--size-1);
+  min-width: 0;
+  color: var(--on-primary);
+}
+
+.headerAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--size-5);
+  height: var(--size-5);
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: var(--bold);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.headerProfileName {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .signUpBtn {
   background-color: var(--primary);
 

@@ -265,6 +265,26 @@ html.authDialogLocked {
   }
 }
 
+//=====
+
+.authError {
+  color: var(--error);
+  font-size: var(--label-medium);
+  font-weight: var(--regular);
+}
+
+.authControl:has(input[aria-invalid='true']) {
+  border-color: var(--error);
+}
+
+.authSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+//=====
+
 @media (width <= 420px) {
   .authDialog {
     padding: var(--size-3);

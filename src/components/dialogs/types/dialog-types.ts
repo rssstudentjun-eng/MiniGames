@@ -48,3 +48,29 @@ export interface GameCommentsResponse {
   data: GameComment[];
   meta: GameCommentsMeta;
 }
+
+export interface CommentLikeResponse {
+  data: {
+    isLikedByCurrentUser: boolean;
+    likesCount: number;
+  };
+}
+
+export interface GameFavoriteToggleResponse {
+  data: {
+    gameSlug: string;
+    isFavorited: boolean;
+    likesCount: number;
+  };
+}
+
+export interface GameCommentPost {
+  data: {
+    commentId: string;
+    authorName: string;
+    text: string;
+    likesCount: number;
+    isLikedByCurrentUser: boolean;
+    createdAt: string;
+  };
+}
